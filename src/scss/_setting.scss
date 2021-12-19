@@ -1,0 +1,61 @@
+$mainColor: rgb(38, 49, 51);
+$secColor: rgb(64, 153, 165);
+
+%ts {
+    transition: all .3s ease-out;
+}
+
+%te {
+    overflow:hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+@mixin defaultFont {
+    font-family: 'Lato', 'Noto Sans TC', sans-serif;
+}
+
+@mixin en2 {
+    font-family: 'Play', sans-serif;
+}
+
+@mixin media($w) {
+    @if ($w < 0) {
+        @media (min-width: (-$w + px))  {
+            @content;
+        }
+    } @else {
+        @media (max-width: ($w + px))  {
+            @content;
+        }
+    }
+}
+
+@mixin fade($switch: out, $axis: x, $offset: 10, $name: fade) {
+    @keyframes #{$name} {
+        from {
+            @if ($switch == out) {
+                opacity: 1;
+            } @else {
+                opacity: 0;
+            }
+            @if ($axis == x) {
+                transform: translateX(0);
+            } @else {
+                transform: translateX($offset);
+            }
+        }
+        to {
+            @if ($switch == out) {
+                opacity: 0;
+            } @else {
+                opacity: 1;
+            }
+            @if ($axis == x) {
+                transform: translateX($offset);
+            } @else {
+                transform: translateX(0);
+            }
+        }
+    }
+}

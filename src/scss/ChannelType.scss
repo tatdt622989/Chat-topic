@@ -1,0 +1,29 @@
+@import 'setting';
+
+.channelTypeArea {
+    padding: 10px 20px;
+    border-bottom: 1px solid lighten($mainColor, 10%);
+    ul {
+        margin: 0 -10px;
+        li {
+            padding: 0 10px;
+        }
+    }
+}
+
+.btn {
+    background-color: $secColor;
+    width: 52px;
+    height: 52px;
+    border-radius: 999px;
+    border: 0;
+    cursor: pointer;
+    @extend %ts;
+    &:hover {
+        background-color: darken($secColor, 10%);
+    }
+    span {
+        font-size: 30px;
+        color: $mainColor;
+    }
+}

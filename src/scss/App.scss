@@ -1,0 +1,238 @@
+@import 'setting';
+@import "reset";
+
+body {
+    width: 100%;
+    mask: no-repeat;
+    font-family: 'Lato', 'Noto Sans TC', sans-serif;
+    background-color: $mainColor;
+    margin: 0;
+}
+
+.hidden {
+    display: none;
+}
+
+h2 {
+    color: $secColor;
+    font-weight: 500;
+}
+
+ul {
+    padding: 0;
+    margin: 0;
+    display: flex;
+    list-style: none;
+}
+
+.App {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.contentArea {
+    display: flex;
+    flex-grow: 1;
+}
+
+.view {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.inputStyle-1 {
+    width: 100%;
+    height: 44px;
+    border-radius: 8px;
+    background-color: rgba(lighten($secColor, 10%), .2);
+    border: 0;
+    color: $secColor;
+    font-size: 18px;
+    text-indent: 18px;
+    font-weight: 400;
+    outline: 0;
+    @extend %ts;
+    &.error {
+        box-shadow: inset 0 0 14px rgba($secColor, .7);
+    }
+    &::placeholder {
+        color: rgba($secColor, .5);
+        font-weight: 500;
+    }
+}
+
+.fileStyle-1 {
+    display: flex;
+    justify-content: center;
+    input {
+        display: none;
+    }
+    .imgBox {
+        width: 100px;
+        height: 100px;
+        background-color: $secColor;
+        border-radius: 999px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        cursor: pointer;
+        @extend %ts;
+        border: 2px solid $secColor;
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 999px;
+        }
+        &:hover {
+            background-color: lighten($secColor, 10%);
+        }
+        .iconBox {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: rgb(192, 192, 192);
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            right: 0;
+            bottom: 0;
+            @extend %ts;
+            &:hover {
+                background-color: rgb(161, 161, 161);
+            }
+            span {
+                font-size: 20px;
+            }
+        }
+        span {
+            font-size: 100px;
+            color: $mainColor;
+        }
+    }
+}
+
+button, a {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    @extend %ts;
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.formBox {
+    background-color: $mainColor;
+    padding: 20px;
+    border-radius: 8px;
+    @include en2;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    max-width: 400px;
+    width: 100%;
+    box-sizing: border-box;
+    .helpBtn {
+        height: 44px;
+        width: 44px;
+        align-self: flex-end;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: -7px;
+        margin-top: -7px;
+        span {
+            @extend %ts;
+            color: $secColor;
+            font-size: 30px;
+        }
+        &:hover {
+            span {
+                color: lighten($secColor, 10%);
+            }
+        }
+    }
+    h1 {
+        font-size: 50px;
+        font-weight: bold;
+        color: $secColor;
+        text-align: center;
+        border-bottom: 1px solid lighten($mainColor, 10%);
+        margin-bottom: 24px;
+        padding-bottom: 20px;
+        margin-top: 0;
+    }
+    form {
+        display: flex;
+        flex-direction: column;
+        input {
+            margin: 20px 0;
+        }
+        .hint {
+            color: $secColor;
+            margin-top: -8px;
+            margin-bottom: 10px;
+        }
+        .btnBox {
+            display: flex;
+            justify-content: flex-end;
+            margin: 0 -10px;
+            margin-top: 20px;
+            button, a {
+                border: 0;
+                background-color: $secColor;
+                color: $mainColor;
+                width: 100%;
+                height: 46px;
+                font-size: 20px;
+                font-weight: bold;
+                border-radius: 8px;
+                margin: 0 10px;
+                cursor: pointer;
+                @extend %ts;
+                &.block {
+                    pointer-events: none;
+                }
+                &:hover {
+                    background-color: lighten($secColor, 10%);
+                }
+            }
+        }
+    }
+}
+
+.btnLoadingBox {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    .dot {
+        border-radius: 99px;
+        width: 8px;
+        height: 8px;
+        background-color: $mainColor;
+        position: relative;
+        margin: 4px;
+        opacity: 0;
+        &:first-child {
+            @include fade(in, x, 0, loadingAni);
+            animation: loadingAni .6s ease-out infinite alternate;
+        }
+        &:nth-of-type(2) {
+            @include fade(in, x, 0, loadingAni2);
+            animation: loadingAni2 .6s .2s ease-out infinite alternate;
+        }
+        &:nth-of-type(3) {
+            @include fade(in, x, 0, loadingAni3);
+            animation: loadingAni3 .6s .4s ease-out infinite alternate;
+        }
+    }
+}

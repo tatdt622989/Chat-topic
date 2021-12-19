@@ -1,0 +1,21 @@
+@import 'setting';
+
+.view.login {
+    background: no-repeat url(../images/login_bg.jpg) center/cover;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    @include media(720) {
+        background: $mainColor;
+        padding-bottom: 40px;
+    }
+    .formBox {
+        input {
+            margin-top: 0;
+        }
+        h1 {
+            margin-top: -4px;
+        }
+    }
+}
