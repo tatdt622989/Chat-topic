@@ -1,0 +1,31 @@
+@import "./setting";
+
+.loading {
+  position: fixed;
+  width: 100%;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  background-color: $mainColor;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  display: none;
+  &.show {
+    display: flex;
+  }
+  .Txt {
+    p {
+      margin: 0;
+      margin-bottom: 60px;
+      @include defaultFont;
+      color: transparent;
+      font-size: 48px;
+      font-weight: bold;
+      background: linear-gradient(90deg, $secColor, rgba($secColor, .5));
+      background-clip: text;
+      text-fill-color: transparent;
+    }
+  }
+}

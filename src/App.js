@@ -4,44 +4,70 @@ import "./scss/App.scss";
 import Home from "./views/Home";
 import Login from "./views/Login";
 import Signup from "./views/Signup";
-import EmailSend from "./views/EmailSend";
 import Toast from "./components/Toast";
 import "./Firebase";
 import GlobalContext from "./GlobalContext";
+import RequireAuth from "./router/RequireAuth";
 
 const initialState = {
   userEmail: "",
   userName: "",
-  userPhotoUrl: "",
+  userPhotoURL: "",
   toastList: [],
   isLogin: false,
 };
 
-function setToastList(editableState, action) {
-  if (action === 'add') {
-    // editableState.toastList.push({
-    //   action: action.action,
-    //   title: action.title,
-    //   content: action.content,
-    // });
-    editableState.toastList.push(action.payload);
+class ToastItem {
+  constructor(state, payload) {
+    this.payload = payload;
+    this.state = state;
   }
-  if (action === 'delete' && action.index) {
-    editableState.splice(action.index, 1);
+
+  updateToast() {
+    console.log("update toast data!");
+    const obj = {
+      theme: this.payload.theme,
+      action: this.payload.action,
+      title: this.payload.title,
+      content: this.payload.content,
+      id: this.payload.id,
+    };
+    if (obj.action === "add") {
+      this.state.toastList.push(obj);
+    }
+    if (obj.action === "delete") {
+      const index = this.state.toastList.filter((item, i) => {
+        if (item.id === obj.id) {
+          return i;
+        }
+      });
+      if (index >= 0) {
+        this.state.toastList.splice(index, 1);
+      }
+    }
+    return this.state;
   }
-  return editableState;
 }
 
 function reducer(state, action) {
-  const editableState = {...state};
+  const editableState = { ...state };
   switch (action.type) {
     case "setUserEmail":
       editableState.userEmail = action.payload;
       return editableState;
+    case "setUserName":
+      editableState.userName = action.payload;
+      return editableState;
+    case "setUserPhotoURL":
+      editableState.userPhotoURL = action.payload;
+      return editableState;
     case "setToastList":
-      return setToastList(editableState, action.payload);
+      const item = new ToastItem(editableState, action.payload);
+      console.log(item);
+      return item.updateToast();
     case "setIsLogin":
-      return editableState.isLogin = action.payload;
+      editableState.isLogin = action.payload;
+      return editableState;
     default:
       throw new Error();
   }
@@ -49,7 +75,7 @@ function reducer(state, action) {
 
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const contextValue = useMemo(() => ({state, dispatch}), [state, dispatch]);
+  const contextValue = useMemo(() => ({ state, dispatch }), [state, dispatch]);
 
   useEffect(() => {
     try {
@@ -66,9 +92,15 @@ function App() {
     <div className="App">
       <GlobalContext.Provider value={contextValue}>
         <Routes>
-          <Route path="/" element={<Home />}></Route>
+          <Route
+            path="/"
+            element={
+              <RequireAuth>
+                <Home />
+              </RequireAuth>
+            }
+          ></Route>
           <Route path="/login" element={<Login />}></Route>
-          <Route path="/email-send" element={<EmailSend />}></Route>
           <Route path="/signup" element={<Signup />}></Route>
           <Route path="*" element={<Login />}></Route>
         </Routes>

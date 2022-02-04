@@ -10,11 +10,33 @@
         background: $mainColor;
         padding-bottom: 40px;
     }
+    @include media(540) {
+        justify-content: flex-start;
+    }
     .formBox {
-        padding-top: 40px;
+        display: flex;
+        flex-direction: column;
+        padding-top: 30px;
+        @include media(540) {
+            padding-top: 40px;
+        }
+        .head {
+            width: 100%;
+            display: flex;
+            justify-content: flex-start;
+            padding-bottom: 10px;
+            .back {
+                span {
+                    color: $secColor;
+                    font-size: 30px;
+                }
+            }
+        }
         form {
             input {
                 margin-top: 0;
+                width: auto;
+                flex-grow: 1;
             }
         }
     }

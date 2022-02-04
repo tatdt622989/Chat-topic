@@ -3,10 +3,12 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import {
   getAuth,
-  sendSignInLinkToEmail,
-  isSignInWithEmailLink,
-  signInWithEmailLink,
+  GoogleAuthProvider,
+  createUserWithEmailAndPassword,
+	signInWithEmailAndPassword,
 	updateProfile,
+	getRedirectResult,
+	signInWithRedirect,
 } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
@@ -30,22 +32,25 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getDatabase(app);
 const storage = getStorage(app);
+const provider = new GoogleAuthProvider();
 
-const actionCodeSettings = {
-  // URL you want to redirect back to. The domain (www.example.com) for this
-  // URL must be in the authorized domains list in the Firebase Console.
-  url: `${process.env.REACT_APP_DOMAIN}/signup`,
-  // This must be true.
-  handleCodeInApp: true,
-};
+// const actionCodeSettings = {
+//   // URL you want to redirect back to. The domain (www.example.com) for this
+//   // URL must be in the authorized domains list in the Firebase Console.
+//   url: `${process.env.REACT_APP_DOMAIN}/signup`,
+//   // This must be true.
+//   handleCodeInApp: true,
+// };
 
 const auth = getAuth();
-const user = auth.currentUser;
+// const user = auth.currentUser;
 
-async function fileUpload(file) {
-  console.log(user);
-  return;
-	const fileRef = ref(storage, toString(user.uid));
+async function fileUpload(user, file) {
+  console.log(file, user.uid);
+	if (!file || !user) {
+		return;
+	}
+	const fileRef = ref(storage, `head_shot/${user.uid}/${Date.now()}`);
 	const uploadTask = uploadBytesResumable(fileRef, file);
 	const link = await new Promise((resolve, reject) => {
 		uploadTask.on(
@@ -67,18 +72,16 @@ async function fileUpload(file) {
 						// User canceled the upload
 						break;
 	
-					// ...
-	
 					case "storage/unknown":
 						// Unknown error occurred, inspect error.serverResponse
 						break;
 				}
 			},
-			() => {
+			async () => {
 				// Upload completed successfully, now we can get the download URL
-				getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-					console.log("File available at", downloadURL);
-				});
+				resolve(await getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+					return console.log("File available at", downloadURL);
+				}));
 			}
 		);
 	})
@@ -86,97 +89,133 @@ async function fileUpload(file) {
 }
 
 function updateUserData(name, url) {
+	console.log('update user');
+	const user = auth.currentUser;
 	return updateProfile(user, {
 		displayName: name,
 		photoURL: url ? url : '',
 	}).then(() => {
-		return 'ok';
+		return {
+      status: true,
+      user,
+    };
 	}).catch((error) => {
 		return error;
 	});
 }
 
-/**
- * 發送email驗證信
- * @param {*} email 使用者email
- */
-function emailVerification(email) {
-  console.log(email, "驗證開始");
-  console.log(process.env.REACT_APP_DOMAIN);
-  return sendSignInLinkToEmail(auth, email, actionCodeSettings)
-    .then(() => {
-      console.log("mail send", auth);
-      // The link was successfully sent. Inform the user.
-      // Save the email locally so you don't need to ask the user for it again
-      // if they open the link on the same device.
-      window.localStorage.setItem("emailForSignIn", email);
-			return {
-        status: true,
-        msg: '驗證郵件已送出',
-      };
-			// set(ref(db, 'users/' + userId), {
-			// 	username: name,
-			// 	email: email,
-			// 	profile_picture : imageUrl
-			// });
-    })
-    .catch((error) => {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      console.log(errorCode, errorMessage);
-			return errorMessage;
-    });
+function createUser(email, password, name, file) {
+  console.log(email, password);
+  return createUserWithEmailAndPassword(auth, email, password)
+  .then(async (userCredential) => {
+    // Signed in 
+    const { user } = userCredential;
+    const url = await fileUpload(user, file);
+		await updateUserData(name, url);
+  })
+  .catch((error) => {
+    const errorCode = error.code;
+    const errorMessage = error.message;
+    console.log(errorCode, errorMessage);
+    let type = '';
+
+		if (errorCode) {
+			if (errorCode.search('email') > -1) {
+				type = 'email';
+			}
+	
+			if (errorCode.search('password') > -1) {
+				type = 'password';
+			}
+		}
+
+
+    return {
+      status: false,
+      type,
+      msg: errorCode,
+    };
+  });
 }
 
-function login(payload) {
-  console.log('login check', isSignInWithEmailLink(auth, window.location.href));
-  if (isSignInWithEmailLink(auth, window.location.href)) {
-    // Additional state parameters can also be passed via URL.
-    // This can be used to continue the user's intended action before triggering
-    // the sign-in operation.
-    // Get the email if available. This should be available if the user completes
-    // the flow on the same device where they started it.
-    let email = window.localStorage.getItem('emailForSignIn');
-    if (!email) {
-      // User opened the link on a different device. To prevent session fixation
-      // attacks, ask the user to provide the associated email again. For example:
-      email = payload;
-      return {
-        status: false,
-        msg: '無法取得使用者email',
-        action: 'get email',
-      };
-    }
-    // The client SDK will parse the code from the link for you.
-    return signInWithEmailLink(auth, email, window.location.href)
-      .then((result) => {
-        // Clear email from storage.
-        window.localStorage.removeItem('emailForSignIn');
-        // You can access the new user via result.user
-        // Additional user info profile not available via:
-        // result.additionalUserInfo.profile == null
-        // You can check if the user is new or existing:
-        // result.additionalUserInfo.isNewUser
-        console.log(result);
-        if (!result.additionalUserInfo.profile) {
-          return {
-            status: false,
-            msg: '',
-            action: 'get profile',
-          }
-        }
-        return user;
-      })
-      .catch((error) => {
-        // Some error occurred, you can inspect the code: error.code
-        // Common errors could be invalid email and invalid or expired OTPs.
-      });
-  }
-  return {
-    status: false,
-    msg: '需驗證email',
-    action: 'verify'
-  }
+function login(type, email, password) {
+	console.log(type, email, password);
+	if (type) {
+		switch(type) {
+			case 'email':
+				return signInWithEmailAndPassword(auth, email, password)
+				.then((userCredential) => {
+					// Signed in 
+					const user = userCredential.user;
+					// ...
+				})
+				.catch((error) => {
+					const errorCode = error.code;
+					const errorMessage = error.message;
+					console.log(errorCode, errorMessage);
+
+					if (errorCode) {
+						if (errorCode.search('email') > -1) {
+							type = 'email';
+						}
+				
+						if (errorCode.search('password') > -1) {
+							type = 'password';
+						}
+					}
+
+					return {
+						status: false,
+						type,
+						msg: errorCode,
+					};
+				});
+			case 'google':
+				signInWithRedirect(auth, provider);
+				break;
+			default:
+				break;
+		}
+	}
 }
 
-export { emailVerification, login, fileUpload, updateUserData };
+async function checkUser() {
+	return await getRedirectResult(auth)
+  .then((result) => {
+		console.log('check user');
+    // This gives you a Google Access Token. You can use it to access Google APIs.
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    const token = credential.accessToken;
+
+    // The signed-in user info.
+    const user = result.user;
+
+		return {
+      status: true,
+      user,
+    };
+
+		console.log(user);
+  }).catch((error) => {
+    // Handle Errors here.
+    const errorCode = error.code;
+    const errorMessage = error.message;
+    // The email of the user's account used.
+    const email = error.email;
+    // The AuthCredential type that was used.
+    const credential = GoogleAuthProvider.credentialFromError(error);
+		let type = '';
+		if (errorCode) {
+			if (errorCode.search('email') > -1) {
+				type = 'email';
+			}
+		}
+    return {
+      status: false,
+      type,
+      msg: errorCode,
+    };
+  });
+}
+
+export { login, fileUpload, updateUserData, createUser, checkUser };

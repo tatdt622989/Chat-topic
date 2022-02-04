@@ -59,3 +59,41 @@ $secColor: rgb(64, 153, 165);
         }
     }
 }
+
+@mixin center($type: flex, $axis: all) {
+    @if ($type == flex) {
+        display: flex;
+        @if ($axis == x or $axis == all) {
+            justify-content: center;
+        }
+        @if ($axis == y or $axis == all) {
+            align-items: center;
+        }
+    }
+    @if ($type == transform) {
+        position: absolute;
+        @if ($axis == x) {
+            right: auto;
+            left: 50%;
+            transform: translateX(-50%);
+            @content;
+        }
+        @if ($axis == y) {
+            bottom: auto;
+            top: 50%;
+            transform: translateY(-50%);
+            @content;
+        }
+        @if ($axis == all) {
+            top: 50%;
+            bottom: auto;
+            left: 50%;
+            right: auto;
+            transform: translate(-50%, -50%);
+            @content;
+        }
+    }
+    @if ($type == margin) {
+        margin: 0 auto;
+    }
+}
