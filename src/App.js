@@ -10,11 +10,11 @@ import GlobalContext from "./GlobalContext";
 import RequireAuth from "./router/RequireAuth";
 
 const initialState = {
+  userId: "",
   userEmail: "",
   userName: "",
   userPhotoURL: "",
   toastList: [],
-  isLogin: false,
 };
 
 class ToastItem {
@@ -61,13 +61,13 @@ function reducer(state, action) {
     case "setUserPhotoURL":
       editableState.userPhotoURL = action.payload;
       return editableState;
+    case "setUserId":
+      editableState.userId = action.payload;
+      return editableState;
     case "setToastList":
       const item = new ToastItem(editableState, action.payload);
       console.log(item);
       return item.updateToast();
-    case "setIsLogin":
-      editableState.isLogin = action.payload;
-      return editableState;
     default:
       throw new Error();
   }
@@ -75,6 +75,7 @@ function reducer(state, action) {
 
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
+  // 讓重複的值不會導致元件重新渲染
   const contextValue = useMemo(() => ({ state, dispatch }), [state, dispatch]);
 
   useEffect(() => {
@@ -92,15 +93,15 @@ function App() {
     <div className="App">
       <GlobalContext.Provider value={contextValue}>
         <Routes>
+          <Route path="/" element={<Login />}></Route>
           <Route
-            path="/"
+            path="/channel/:channelId"
             element={
               <RequireAuth>
                 <Home />
               </RequireAuth>
             }
           ></Route>
-          <Route path="/login" element={<Login />}></Route>
           <Route path="/signup" element={<Signup />}></Route>
           <Route path="*" element={<Login />}></Route>
         </Routes>

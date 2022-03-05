@@ -1,5 +1,5 @@
 import "../scss/Signup.scss";
-import React, { useEffect, useContext, useState } from "react";
+import React, { useEffect, useContext, useState, useCallback } from "react";
 import GlobalContext from "../GlobalContext";
 import classNames from "classnames";
 import { fileUpload, updateUserData, login, createUser } from "../Firebase";
@@ -32,7 +32,7 @@ function Signup() {
   const [isLoading, setIsLoading] = useState(false);
   let navigate = useNavigate();
 
-  function pushErrorMsg(msg) {
+  const pushErrorMsg = useCallback((msg) => {
     const id = Date.now();
     dispatch({
       type: "setToastList",
@@ -53,14 +53,15 @@ function Signup() {
         },
       });
     }, 5000);
-  }
+  }, [dispatch])
 
-  function ruleChecker(res) {
+  const ruleChecker = useCallback((res) => {
     const newValidation = { ...validation };
     const newHint = { ...hint };
     newValidation.name = !!username.trim();
     newValidation.email = !!email.trim();
     newValidation.password = !!password.trim();
+
     if (!newValidation.name) {
       newHint.name = "暱稱不能為空";
     }
@@ -94,9 +95,31 @@ function Signup() {
       }
     }
 
-    setValidation(newValidation);
-    setHint(newHint);
-  }
+    let isValidationChange = false;
+
+    Object.keys(newValidation).forEach((key) => {
+      if (validation[key] !== newValidation[key]) {
+        isValidationChange = true;
+      }
+    });
+
+    if (isValidationChange) {
+      setValidation(newValidation);
+    }
+
+    let isHintChange = false;
+
+    Object.keys(newHint).forEach((key) => {
+      if (hint[key] !== newHint[key]) {
+        isHintChange = true;
+      }
+    });
+
+    if (isHintChange) {
+      setHint(newHint);
+    }
+
+  }, [email, hint, password, pushErrorMsg, username, validation])
 
   function fileToBase64(file) {
     return new Promise((resolve, reject) => {
@@ -130,31 +153,32 @@ function Signup() {
       const res = await createUser(email, password, username, file);
       ruleChecker(res);
       setIsLoading(false);
+      if (res && res.status) {
+        const { user } = res;
+        console.log(user);
+        await dispatch({ type: "setUserEmail", payload: user.email });
+        await dispatch({ type: "setUserName", payload: user.displayName });
+        await dispatch({ type: "setUserPhotoURL", payload: user.photoURL });
+        await dispatch({ type: "setUserId", payload: user.uid });
+        navigate("/");
+      }
     }
   }
 
   useEffect(() => {
     ruleChecker();
-  }, [username]);
-
-  useEffect(() => {
-    ruleChecker();
-  }, [email]);
-
-  useEffect(() => {
-    ruleChecker();
-  }, [password]);
+  }, [password, email, username, ruleChecker]);
 
   return (
     <div className="view signup">
       <div className="formBox">
         <div className="head">
-          <a className="back" onClick={(e) => {
+          <button className="back" onClick={(e) => {
               e.preventDefault();
               navigate("/");
             }}>
             <span className="material-icons">arrow_back</span>
-          </a>
+          </button>
         </div>
         <h1 className="title">SIGN UP</h1>
         <form onSubmit={(e) => e.preventDefault()}>
@@ -167,7 +191,7 @@ function Signup() {
               />
               <div className="imgBox">
                 {fileUrl ? (
-                  <img src={fileUrl} alt="account photo" />
+                  <img src={fileUrl} alt="account" />
                 ) : (
                   <span className="material-icons">account_circle</span>
                 )}
@@ -207,7 +231,6 @@ function Signup() {
           <input
             type="email"
             placeholder="電子郵件"
-            className="inputStyle-1"
             autoComplete="on"
             onChange={(e) => {
               setEmail(e.target.value);
@@ -230,7 +253,6 @@ function Signup() {
           )}
           <input
             placeholder="密碼"
-            className="inputStyle-1"
             type="password"
             onBlur={() =>
               setIsDirty({

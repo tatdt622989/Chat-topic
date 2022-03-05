@@ -1,10 +1,10 @@
 import "../scss/Login.scss";
-import React, { useEffect, useContext, useState } from "react";
+import React, { useEffect, useContext, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import classNames from "classnames";
 import GlobalContext from "../GlobalContext";
-import { useParams, useNavigate } from "react-router-dom";
-import { login, checkUser } from "../Firebase";
+import { useLocation, useNavigate } from "react-router-dom";
+import { login, checkLoginStatus } from "../Firebase";
 import { ReactComponent as GoogleLogo } from "../images/google-icon.svg";
 import Toast from "../components/Toast";
 import Loading from "../components/Loading";
@@ -12,6 +12,7 @@ import Loading from "../components/Loading";
 function Login() {
   const { state, dispatch } = useContext(GlobalContext);
   const [email, setEmail] = useState("");
+  const location = useLocation();
   const [validation, setValidation] = useState({
     email: false,
     password: false,
@@ -22,14 +23,14 @@ function Login() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isGlobalLoading, setIsGlobalLoading] = useState(false);
-  const [password, setPassword] = useState(false);
+  const [password, setPassword] = useState("");
   const [hint, setHint] = useState({
     email: "",
     password: "",
   });
   let navigate = useNavigate();
 
-  function pushErrorMsg(msg) {
+  const pushErrorMsg = useCallback((msg) => {
     const id = Date.now();
     dispatch({
       type: "setToastList",
@@ -50,16 +51,17 @@ function Login() {
         },
       });
     }, 5000);
-  }
+  }, [dispatch])
 
-  function ruleChecker(res) {
+  const ruleChecker = useCallback((res) => {
     const newValidation = { ...validation };
     const newHint = { ...hint };
     const emailRule =
       /^\w+((-\w+)|(\.\w+))*@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]+$/;
-    const rule = /^[a-zA-z0-9_.-]$/;
-    newValidation.email = !!emailRule.test(email);
-    newValidation.password = !!rule.test(password);
+    const rule = /^[a-zA-z0-9_.-]+$/;
+    // newValidation.email = !!emailRule.test(email);
+    newValidation.email = !!email.trim();
+    newValidation.password = !!password.trim();
 
     if (!newValidation.email) {
       newHint.email = "電子郵件不能為空";
@@ -91,11 +93,31 @@ function Login() {
       }
     }
 
-    console.log("check", newValidation);
+    let isValidationChange = false;
 
-    setValidation(newValidation);
-    setHint(newHint);
-  }
+    Object.keys(newValidation).forEach((key) => {
+      if (validation[key] !== newValidation[key]) {
+        isValidationChange = true;
+      }
+    });
+
+    if (isValidationChange) {
+      setValidation(newValidation);
+    }
+
+    let isHintChange = false;
+
+    Object.keys(newHint).forEach((key) => {
+      if (hint[key] !== newHint[key]) {
+        isHintChange = true;
+      }
+    });
+
+    if (isHintChange) {
+      setHint(newHint);
+    }
+
+  }, [email, password, hint, pushErrorMsg, validation])
 
   async function submit(type) {
     let res;
@@ -105,48 +127,57 @@ function Login() {
         password: true,
         name: true,
       });
-      if (validation.name && validation.password) {
+      if (validation.email && validation.password) {
         setIsLoading(true);
         res = await login(type, email, password);
         ruleChecker(res);
         setIsLoading(false);
+        if (res && res.status) {
+          const { user } = res;
+          console.log(user);
+          await dispatch({ type: "setUserEmail", payload: user.email });
+          await dispatch({ type: "setUserName", payload: user.displayName });
+          await dispatch({ type: "setUserPhotoURL", payload: user.photoURL });
+          await dispatch({ type: "setUserId", payload: user.uid });
+        }
       }
     }
+  
     if (type === "google") {
       res = await login(type);
     }
     if (res && res.status) {
-      dispatch({ type: "setIsLogin", payload: res.status });
-      // navigate("/");
+      navigate("/channel/public");
     }
   }
 
-  useEffect(() => {});
-
-  useEffect(async () => {
-    if (!state.isLogin) {
+  useEffect(() => {
+    async function fetch () {
       setIsGlobalLoading(true);
-      const res = await checkUser();
+      const res = await checkLoginStatus();
+      console.log(res)
       if (res && res.status) {
         const { user } = res;
+        console.log(user);
         await dispatch({ type: "setUserEmail", payload: user.email });
         await dispatch({ type: "setUserName", payload: user.displayName });
         await dispatch({ type: "setUserPhotoURL", payload: user.photoURL });
-        await dispatch({ type: "setIsLogin", payload: true });
-        navigate("/");
+        await dispatch({ type: "setUserId", payload: user.uid });
+        navigate(location.state.from.pathname);
       } else {
         setIsGlobalLoading(false);
       }
     }
-  }, [state.isLogin]);
+    fetch();
+  }, [dispatch, navigate]);
 
   useEffect(() => {
     ruleChecker();
-  }, [email]);
+  }, [email, ruleChecker]);
 
   useEffect(() => {
     ruleChecker();
-  }, [password]);
+  }, [password, ruleChecker]);
 
   return (
     <div className="view login">
@@ -172,7 +203,6 @@ function Login() {
           <input
             type="text"
             placeholder="電子郵件"
-            className="inputStyle-1"
             onChange={(e) => {
               setEmail(e.target.value);
             }}
@@ -190,7 +220,6 @@ function Login() {
           )}
           <input
             placeholder="密碼"
-            className="inputStyle-1"
             type="password"
             onChange={(e) => {
               setPassword(e.target.value);

@@ -1,6 +1,9 @@
+
+import { Link } from "react-router-dom";
 import '../scss/ChannelType.scss';
 
-function ChannelType() {
+function ChannelLink(props) {
+
     return (
         <div className="channelTypeArea">
             <ul>
@@ -14,9 +17,14 @@ function ChannelType() {
                         <span className="material-icons">travel_explore</span>
                     </button>
                 </li>
+                <li>
+                    <Link to={`/channel/public2`} className="btn">
+                        <span className="material-icons">public</span>
+                    </Link>
+                </li>
             </ul>
         </div>
     )
 }
 
-export default ChannelType;
+export default ChannelLink;
