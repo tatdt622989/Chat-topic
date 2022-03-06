@@ -36,17 +36,17 @@ function Home() {
 
       await Promise.all(requests).then((values) => {
         console.log("members:", values);
-        setChannelMembers(values);
+        const newVal = values.map((obj, i) => {return {...obj, uid: userUids[i]}})
+        setChannelMembers(newVal);
       });
     });
-    console.log(memberOff);
     return () => {
       console.log("unmount");
       if (memberOff) {
         memberOff();
       }
     };
-  }, []);
+  }, [channelId]);
 
   useEffect(() => {
     async function fetchData() {
@@ -66,7 +66,7 @@ function Home() {
       <ChannelLink />
       <div className="contentArea">
         <ChannelInfo info={channelInfo} members={channelMembers} />
-        <ActivitySpace />
+        <ActivitySpace channelId={channelId} members={channelMembers} />
       </div>
     </div>
   );

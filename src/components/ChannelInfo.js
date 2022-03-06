@@ -5,7 +5,7 @@ function MemberList(props) {
   const members = props.members??[];
   console.log('memberListRender', members, props.members)
   const listItems = members.map((user) => (
-    <li key={user}>
+    <li key={user.uid}>
       <button className="current">
         <div className="item">
           <div className="imgBox">
@@ -34,30 +34,6 @@ function ChannelInfo(props) {
       <p className="intro">{props.info?.description}</p>
       <p className="type">頻道成員</p>
       <MemberList members={props.members} />
-      {/* <ul>
-        <li>
-          <button className="current">
-            <div className="item">
-              <div className="imgBox"></div>
-              <div className="textBox">
-                <p className="name">6yuwei</p>
-                <p className="text">あす きゅうか が ひつよう です。</p>
-              </div>
-            </div>
-          </button>
-        </li>
-        <li>
-          <button>
-            <div className="item">
-              <div className="imgBox"></div>
-              <div className="textBox">
-                <p className="name">6yuwei</p>
-                <p className="text">あす きゅうか が ひつよう です。</p>
-              </div>
-            </div>
-          </button>
-        </li>
-      </ul> */}
     </div>
   );
 }

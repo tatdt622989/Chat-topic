@@ -163,7 +163,7 @@ function Login() {
         await dispatch({ type: "setUserName", payload: user.displayName });
         await dispatch({ type: "setUserPhotoURL", payload: user.photoURL });
         await dispatch({ type: "setUserId", payload: user.uid });
-        navigate(location.state.from.pathname);
+        navigate(location.state?.from.pathname??'/channel/public');
       } else {
         setIsGlobalLoading(false);
       }

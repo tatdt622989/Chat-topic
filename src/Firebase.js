@@ -11,7 +11,17 @@ import {
   signInWithRedirect,
   onAuthStateChanged,
 } from "firebase/auth";
-import { get, set, getDatabase, child, ref, onValue } from "firebase/database";
+import {
+  get,
+  set,
+  getDatabase,
+  child,
+  ref,
+  onValue,
+  query,
+  limitToLast,
+  push,
+} from "firebase/database";
 import {
   getStorage,
   ref as storageRef,
@@ -155,6 +165,12 @@ async function createUser(email, password, name, file) {
       if (res && res.url) {
         await updateUserData(name, res.url);
         await updateDbUserData("create", user);
+        const ts = Date.now();
+        console.log('uid', auth.currentUser.uid)
+        await set(ref(db, `channels/public/members/${auth.currentUser.uid}`), {
+          joinTimestamp: ts,
+          lastActivity: ts,
+        });
       }
 
       if (!res || !res.status) {
@@ -298,28 +314,13 @@ async function checkLoginStatus() {
     return loginStatus;
   }
   await updateDbUserData("create", redirectRes.user);
+  const ts = Date.now();
+  console.log('uid', auth.currentUser.uid)
+  await set(ref(db, `channels/public/members/${auth.currentUser.uid}`), {
+    joinTimestamp: ts,
+    lastActivity: ts,
+  });
   return redirectRes;
-}
-
-async function getLastChannelId(uid) {
-  console.log("getLastChannelId", uid);
-  const dbRef = ref(db);
-  const lastChannelId = await get(child(dbRef, `users/${uid}/last_channel_id`))
-    .then((snapshot) => {
-      if (snapshot.exists()) {
-        console.log(snapshot.val());
-        return snapshot.val();
-      } else {
-        console.log("No data available");
-        return false;
-      }
-    })
-    .catch((error) => {
-      console.error(error);
-      return false;
-    });
-  console.log("lastChannelId:", lastChannelId);
-  return lastChannelId;
 }
 
 async function getChannelInfo(uid, type, channelId) {
@@ -342,8 +343,16 @@ async function getChannelInfo(uid, type, channelId) {
   };
 }
 
-async function updateMember(method, channelId, uid) {
-
+async function CRUDRequest(method, url, data) {
+  let dbRef = ref(db, url);
+  let res;
+  switch (method) {
+    case "push":
+      dbRef = push(dbRef);
+      return await set(dbRef, data);
+    default:
+  }
+  return res;
 }
 
 export {
@@ -351,15 +360,16 @@ export {
   fileUpload,
   createUser,
   getChannelInfo,
-  getLastChannelId,
   updateUserData,
   updateDbUserData,
-  updateMember,
   checkLoginStatus,
   onAuthStateChanged,
+  CRUDRequest,
   auth,
   db,
   ref,
   onValue,
   get,
+  query,
+  limitToLast,
 };
