@@ -1,5 +1,6 @@
 import React, { useEffect, useContext, useState, useMemo, useRef } from "react";
 import GlobalContext from "../GlobalContext";
+import classNames from "classnames";
 import { query, ref, onValue, db, limitToLast, CRUDRequest } from "../Firebase";
 import dateTransform from "../utils/dateTransform";
 import "../scss/ActivitySpace.scss";
@@ -89,11 +90,22 @@ function MsgList(props) {
   return <ul className="msgList">{listItems}</ul>;
 }
 
+function EmojiList() {
+  const [emojiList, setEmojiList] =  useState(['😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊','😋','😎','😍','😘','🥰','😗','😙','🥲','😚','🙂','🤗','🤩','🤔','🤨','😐','😑','😶','😶‍🌫️','🙄','😏','😣','😥','😮','🤐','😯','😪','😫','🥱','😴','😌','😛','😜','😝','🤤','😒','😓','😔','😕','🙃','🤑','😲','☹️','🙁','😖','😞','😟','😤','😢','😭','😦','😧','😨','😩','🤯','😬','😮‍💨','😰','😱','🥵','🥶','😳','🤪','😵','😵‍💫','🥴','😠','😡','🤬','😷','🤒','🤕','🤢','🤮','🤧','😇','🥳','🥸','🥺','🤠','🤡','🤥','🤫','🤭','🧐','🤓','😈','👹','👺','💀','☠️','👻','👽','👾','🤖','💩','😺','😸','😹','😻','😼','😽','🙀','😿','😾']);
+  const emojiElList = emojiList.map((el) => <li className="item" key={el}>{el}</li>);
+  return(
+    <ul className="emojiList scrollbar">
+      {emojiElList}
+    </ul>
+  )
+}
+
 function ActivitySpace(props) {
   const { state, dispatch } = useContext(GlobalContext);
   const [inputMsg, setInputMsg] = useState("");
   const [msgData, setMsgData] = useState([]);
-  const contentBoxEl = useRef(null)
+  const [isEmojiOpen, setIsEmojiOpen] = useState(false);
+  const contentBoxEl = useRef(null);
 
   async function pushMsg(e) {
     if (e.key !== "Enter" || e.keyCode !== 13) return;
@@ -104,11 +116,14 @@ function ActivitySpace(props) {
       uid: state.userId,
     };
     const url = `channels/${props.channelId}/messages`;
-    console.log(url);
     await CRUDRequest("push", url, data);
     contentBoxEl.current.scrollTop = contentBoxEl.current.scrollHeight
     setInputMsg('')
   }
+
+  document.addEventListener('click', () => {
+    setIsEmojiOpen(false);
+  })
 
   useEffect(() => {
     const msgRef = query(
@@ -169,10 +184,16 @@ function ActivitySpace(props) {
           value={inputMsg}
         />
         <ul className="inputTool">
-          <li>
-            <button>
+          <li className={classNames('emoji', { open: isEmojiOpen })}>
+            <button onClick={(e) => {
+                e.stopPropagation();
+                setIsEmojiOpen(!isEmojiOpen)
+              }}>
               <span className="material-icons">sentiment_satisfied_alt</span>
             </button>
+            <div className="emojiMenu" onClick={(e) => e.stopPropagation()}>
+              <EmojiList />
+            </div>
           </li>
         </ul>
       </div>

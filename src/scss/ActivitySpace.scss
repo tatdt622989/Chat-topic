@@ -1,4 +1,4 @@
-@import 'setting';
+@import "setting";
 
 .toolbarArea {
     padding: 14px;
@@ -152,6 +152,70 @@
             span {
                 @extend %ts;
                 color: $secColor;
+            }
+        }
+        li {
+            position: relative;
+            &.emoji {
+                @include after {
+                    @extend %ts;
+                    background: no-repeat url(../images/triangle.svg) center;
+                    bottom: 32px;
+                    height: 32px;
+                    opacity: 0;
+                    pointer-events: none;
+                    right: 6px;
+                    transform: rotate(180deg);
+                    width: 32px;
+                    filter: blur(20px);
+                }
+                &.open {
+                    &:after {
+                        opacity: 1;
+                        pointer-events: auto;
+                        filter: blur(0px);
+                    }
+                    .emojiMenu {
+                        opacity: 1;
+                        pointer-events: auto;
+                        filter: blur(0px);
+                    }
+                }
+            }
+            .emojiMenu {
+                background-color: $secColor;
+                border-radius: 10px;
+                bottom: 55px;
+                display: flex;
+                filter: blur(20px);
+                opacity: 0;
+                overflow: hidden;
+                padding: 10px;
+                pointer-events: none;
+                position: absolute;
+                right: -10px;
+                @extend %ts;
+            }
+            .emojiList {
+                display: flex;
+                flex-wrap: wrap;
+                overflow: auto;
+                width: 300px;
+                max-height: 300px;
+                .item {
+                    width: 16.66%;
+                    @include center;
+                    padding: 6px;
+                    box-sizing: border-box;
+                    font-size: 20px;
+                    aspect-ratio: 1/1;
+                    @extend %ts;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    &:hover {
+                        background-color: darken($secColor, 5%);
+                    }
+                }
             }
         }
     }

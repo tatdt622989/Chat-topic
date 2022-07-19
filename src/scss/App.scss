@@ -51,6 +51,9 @@ ul {
     display: flex;
     flex-direction: column;
     height: 100%;
+    &.login, &.signup {
+        height: 100vh;
+    }
 }
 
 .inputStyle-1 {

@@ -97,3 +97,19 @@ $secColor: rgb(64, 153, 165);
         margin: 0 auto;
     }
 }
+
+@mixin after($content: "", $position: absolute) {
+    &::after {
+        content: $content;
+        position: $position;
+        @content;
+    }
+}
+
+@mixin before($content: "", $position: absolute) {
+    &::before {
+        content: $content;
+        position: $position;
+        @content;
+    }
+}
