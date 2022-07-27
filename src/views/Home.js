@@ -66,7 +66,7 @@ function Home() {
       <ChannelLink />
       <div className="contentArea">
         <ChannelInfo info={channelInfo} members={channelMembers} />
-        <ActivitySpace channelId={channelId} members={channelMembers} />
+        <ActivitySpace channelId={channelId} members={channelMembers} info={channelInfo} />
       </div>
     </div>
   );

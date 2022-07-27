@@ -7,10 +7,24 @@
     box-sizing: border-box;
     display: flex;
     justify-content: space-between;
+    @include media(1024) {
+        align-items: center;
+    }
+    .left {
+        display: flex;
+        align-items: center;
+        @include media(-1025) {
+            display: none;
+        }
+        .menu {
+            margin-right: 20px;
+        }
+    }
     input {
         border-radius: 8px;
         width: 100%;
-        max-width: 240px;
+        // max-width: 240px;
+        flex-grow: 1;
         border: 0;
         height: 44px;
         background-color: darken($mainColor, 5%);
@@ -19,11 +33,15 @@
         color: $secColor;
         outline: none;
         font-weight: 500;
+        appearance: none;
         &::-webkit-search-cancel-button {
             appearance: none;
         }
         &::placeholder {
             color: lighten($mainColor, 15%);
+        }
+        @include media(1024) {
+            display: none;
         }
     }
     .btn {
@@ -40,9 +58,26 @@
             @extend %ts;
         }
     }
+    h2 {
+        margin: 0;
+    }
     ul {
+        margin: 0 -5px;
+        padding-left: 20px;
         li {
-            padding-left: 10px;
+            padding: 0px 5px;
+            &.member {
+                display: none;
+                @include media(-1025) {
+                    display: flex;
+                }
+            }
+            &.search {
+                display: none;
+                @include media(1024) {
+                    display: flex;
+                }
+            }
         }
     }
 }

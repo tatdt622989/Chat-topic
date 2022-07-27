@@ -5,36 +5,42 @@ import { query, ref, onValue, db, limitToLast, CRUDRequest } from "../Firebase";
 import dateTransform from "../utils/dateTransform";
 import "../scss/ActivitySpace.scss";
 
-function ActivitySpaceToolbar() {
+function ActivitySpaceToolbar(props) {
   return (
     <div className="toolbarArea">
+      <div className="left">
+        <button className="btn menu">
+          <span className="material-icons">menu</span>
+        </button>
+        <h2>{props.info?.title}</h2>
+      </div>
       <input type="search" placeholder="搜尋聊天室內容" />
       <ul>
-        <li>
+        <li className="search">
+          <button className="btn">
+            <span className="material-icons">search</span>
+          </button>
+        </li>
+        <li className="add">
           <button className="btn">
             <span className="material-icons">person_add</span>
           </button>
         </li>
-        {/* <li>
-                    <button className="btn">
-                        <span className="material-icons">groups</span>
-                    </button>
-                </li> */}
-        <li>
+        <li className="member">
           <button className="btn">
             <span className="material-icons">people_alt</span>
           </button>
         </li>
-        <li>
+        <li className="personal">
           <button className="btn">
             <span className="material-icons">person</span>
           </button>
         </li>
-        <li>
+        {/* <li className="settings">
           <button className="btn">
             <span className="material-icons">settings</span>
           </button>
-        </li>
+        </li> */}
       </ul>
     </div>
   );
@@ -113,7 +119,6 @@ function ActivitySpace(props) {
 
   async function pushMsg(e) {
     if (e.key !== "Enter" || e.keyCode !== 13) return;
-    console.log("push");
     const data = {
       timestamp: Date.now(),
       content: inputMsg,
@@ -134,7 +139,6 @@ function ActivitySpace(props) {
     const msgOff = onValue(msgRef, async (snapshot) => {
       let data = snapshot.val() ?? {};
       data = Object.values(data);
-      console.log('new data arrive', data)
       const newData = [];
       let tempAry = [];
       data.forEach((obj, i) => {
@@ -151,7 +155,6 @@ function ActivitySpace(props) {
           newData.push(tempAry);
         }
       });
-      console.log('轉換完成', newData);
       setMsgData(newData);
       contentBoxEl.current.scrollTop = contentBoxEl.current.scrollHeight
     });
@@ -175,7 +178,6 @@ function ActivitySpace(props) {
   function handleEmojiInput(e) {
     const text = e.target.innerText;
     setInputMsg(inputMsg.slice(0, inputIndex.start) + text + inputMsg.slice(inputIndex.end));
-    console.log(inputMsg.slice(0, inputIndex.start))
     setInputIndex({
       start: inputIndex.start + text.length,
       end: inputIndex.start + text.length,
@@ -191,7 +193,7 @@ function ActivitySpace(props) {
 
   return (
     <div className="activitySpaceArea">
-      <ActivitySpaceToolbar />
+      <ActivitySpaceToolbar members={props.members} info={props.info} />
       <div className="contentBox scrollbar" ref={contentBoxEl}>
         {useMemo(
           () => (

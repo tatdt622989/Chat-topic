@@ -8,6 +8,11 @@ function ChannelLink(props) {
         <div className="channelTypeArea">
             <ul>
                 <li>
+                    <button className="btn home">
+                        <span className="material-icons">home</span>
+                    </button>
+                </li>
+                <li>
                     <button className="btn">
                         <span className="material-icons">add</span>
                     </button>

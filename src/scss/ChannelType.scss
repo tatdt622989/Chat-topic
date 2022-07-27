@@ -3,6 +3,9 @@
 .channelTypeArea {
     padding: 10px 20px;
     border-bottom: 1px solid lighten($mainColor, 10%);
+    @include media(1024) {
+        display: none;
+    }
     ul {
         margin: 0 -10px;
         li {
@@ -25,5 +28,16 @@
     span {
         font-size: 30px;
         color: $mainColor;
+        @extend %ts;
+    }
+    &.home {
+        background-color: lighten($secColor, 18%);
+        box-shadow: 0 0 7px $secColor;
+        &:hover {
+            background-color: lighten($secColor, 25%);
+        }
+        span {
+            color: darken($secColor, 18%);
+        }
     }
 }

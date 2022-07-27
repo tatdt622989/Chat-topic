@@ -66,7 +66,6 @@ function reducer(state, action) {
       return editableState;
     case "setToastList":
       const item = new ToastItem(editableState, action.payload);
-      console.log(item);
       return item.updateToast();
     default:
       throw new Error();

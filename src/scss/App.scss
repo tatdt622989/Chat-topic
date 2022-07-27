@@ -45,6 +45,9 @@ ul {
 .contentArea {
     display: flex;
     height: calc(100vh - 73px);
+    @include media(1024) {
+        flex-direction: column;
+    }
 }
 
 .view {

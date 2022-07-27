@@ -6,6 +6,9 @@
     box-sizing: border-box;
     border-right: 1px solid lighten($mainColor, 10%);
     flex-shrink: 0;
+    @include media(1024) {
+        display: none;
+    }
     h2 {
         margin-bottom: 20px;
     }
@@ -83,6 +86,11 @@
                     font-size: 14px;
                 }
             }
+        }
+    }
+    .channelListBox {
+        @include media(1024) {
+            display: none;
         }
     }
 }

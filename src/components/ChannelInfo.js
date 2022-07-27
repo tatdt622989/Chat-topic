@@ -3,7 +3,6 @@ import "../scss/ChannelInfo.scss";
 
 function MemberList(props) {
   const members = props.members??[];
-  console.log('memberListRender', members, props.members)
   const listItems = members.map((user) => (
     <li key={user.uid}>
       <button className="current">
@@ -32,8 +31,10 @@ function ChannelInfo(props) {
     <div className="ChannelInfoArea">
       <h2>{props.info?.title}</h2>
       <p className="intro">{props.info?.description}</p>
-      <p className="type">頻道成員</p>
-      <MemberList members={props.members} />
+      <div className="channelListBox">
+        <p className="type">頻道成員</p>
+        <MemberList members={props.members} />
+      </div>
     </div>
   );
 }
