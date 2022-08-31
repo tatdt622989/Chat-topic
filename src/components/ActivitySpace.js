@@ -10,7 +10,7 @@ function ActivitySpaceToolbar(props) {
     <div className="toolbarArea">
       <div className="left">
         <button className="btn menu">
-          <span className="material-icons">menu</span>
+          <span className="material-icons">sync_alt</span>
         </button>
         <h2>{props.info?.title}</h2>
       </div>
