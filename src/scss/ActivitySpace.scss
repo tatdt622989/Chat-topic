@@ -9,6 +9,10 @@
     justify-content: space-between;
     @include media(1024) {
         align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background-color: $mainColor;
     }
     .left {
         display: flex;
@@ -48,6 +52,7 @@
         background: transparent;
         width: 44px;
         height: 44px;
+        border-radius: 99px;
         &:hover {
             span {
                 color: lighten($secColor, 10%);
@@ -88,12 +93,17 @@
     flex-grow: 1;
     flex-direction: column;
     align-items: flex-start;
+    @include media(1024) {
+        position: relative;
+    }
     .contentBox {
         flex-grow: 1;
         width: 100%;
         padding: 20px;
         box-sizing: border-box;
         overflow-y: auto;
+        @include media(1024) {
+        }
     }
     .msgList {
         display: flex;

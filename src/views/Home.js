@@ -13,7 +13,12 @@ function Home() {
   const [channelInfo, setChannelInfo] = useState();
   const [channelMembers, setChannelMembers] = useState();
   const [chatId, setChatId] = useState("");
+  const [isMenuOpen, setIsMenuOpen] = useState(0);
   let navigate = useNavigate();
+
+  function toggleMenu() {
+    setIsMenuOpen(!isMenuOpen);
+  }
 
   // 啟動Firebase監聽器
   useEffect(() => {
@@ -63,10 +68,10 @@ function Home() {
 
   return (
     <div className="view home">
-      <ChannelLink />
+      <ChannelLink isMenuOpen={isMenuOpen} />
       <div className="contentArea">
         <ChannelInfo info={channelInfo} members={channelMembers} />
-        <ActivitySpace channelId={channelId} members={channelMembers} info={channelInfo} />
+        <ActivitySpace channelId={channelId} members={channelMembers} info={channelInfo} isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
       </div>
     </div>
   );

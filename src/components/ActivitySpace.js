@@ -9,7 +9,12 @@ function ActivitySpaceToolbar(props) {
   return (
     <div className="toolbarArea">
       <div className="left">
-        <button className="btn menu">
+        <button
+          className="btn menu"
+          onClick={() => {
+            props.toggleMenu();
+          }}
+        >
           <span className="material-icons">sync_alt</span>
         </button>
         <h2>{props.info?.title}</h2>
@@ -97,13 +102,128 @@ function MsgList(props) {
 }
 
 function EmojiList(props) {
-  const [emojiList, setEmojiList] =  useState(['😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊','😋','😎','😍','😘','🥰','😗','😙','🥲','😚','🙂','🤗','🤩','🤔','🤨','😐','😑','😶','😶‍🌫️','🙄','😏','😣','😥','😮','🤐','😯','😪','😫','🥱','😴','😌','😛','😜','😝','🤤','😒','😓','😔','😕','🙃','🤑','😲','☹️','🙁','😖','😞','😟','😤','😢','😭','😦','😧','😨','😩','🤯','😬','😮‍💨','😰','😱','🥵','🥶','😳','🤪','😵','😵‍💫','🥴','😠','😡','🤬','😷','🤒','🤕','🤢','🤮','🤧','😇','🥳','🥸','🥺','🤠','🤡','🤥','🤫','🤭','🧐','🤓','😈','👹','👺','💀','☠️','👻','👽','👾','🤖','💩','😺','😸','😹','😻','😼','😽','🙀','😿','😾']);
-  const emojiElList = emojiList.map((el) => <li onClick={props.handleEmojiInput} className="item" key={el}>{el}</li>);
-  return(
-    <ul className="emojiList scrollbar">
-      {emojiElList}
-    </ul>
-  )
+  const [emojiList, setEmojiList] = useState([
+    "😀",
+    "😁",
+    "😂",
+    "🤣",
+    "😃",
+    "😄",
+    "😅",
+    "😆",
+    "😉",
+    "😊",
+    "😋",
+    "😎",
+    "😍",
+    "😘",
+    "🥰",
+    "😗",
+    "😙",
+    "🥲",
+    "😚",
+    "🙂",
+    "🤗",
+    "🤩",
+    "🤔",
+    "🤨",
+    "😐",
+    "😑",
+    "😶",
+    "😶‍🌫️",
+    "🙄",
+    "😏",
+    "😣",
+    "😥",
+    "😮",
+    "🤐",
+    "😯",
+    "😪",
+    "😫",
+    "🥱",
+    "😴",
+    "😌",
+    "😛",
+    "😜",
+    "😝",
+    "🤤",
+    "😒",
+    "😓",
+    "😔",
+    "😕",
+    "🙃",
+    "🤑",
+    "😲",
+    "☹️",
+    "🙁",
+    "😖",
+    "😞",
+    "😟",
+    "😤",
+    "😢",
+    "😭",
+    "😦",
+    "😧",
+    "😨",
+    "😩",
+    "🤯",
+    "😬",
+    "😮‍💨",
+    "😰",
+    "😱",
+    "🥵",
+    "🥶",
+    "😳",
+    "🤪",
+    "😵",
+    "😵‍💫",
+    "🥴",
+    "😠",
+    "😡",
+    "🤬",
+    "😷",
+    "🤒",
+    "🤕",
+    "🤢",
+    "🤮",
+    "🤧",
+    "😇",
+    "🥳",
+    "🥸",
+    "🥺",
+    "🤠",
+    "🤡",
+    "🤥",
+    "🤫",
+    "🤭",
+    "🧐",
+    "🤓",
+    "😈",
+    "👹",
+    "👺",
+    "💀",
+    "☠️",
+    "👻",
+    "👽",
+    "👾",
+    "🤖",
+    "💩",
+    "😺",
+    "😸",
+    "😹",
+    "😻",
+    "😼",
+    "😽",
+    "🙀",
+    "😿",
+    "😾",
+  ]);
+  const emojiElList = emojiList.map((el) => (
+    <li onClick={props.handleEmojiInput} className="item" key={el}>
+      {el}
+    </li>
+  ));
+  return <ul className="emojiList scrollbar">{emojiElList}</ul>;
 }
 
 function ActivitySpace(props) {
@@ -126,8 +246,8 @@ function ActivitySpace(props) {
     };
     const url = `channels/${props.channelId}/messages`;
     await CRUDRequest("push", url, data);
-    contentBoxEl.current.scrollTop = contentBoxEl.current.scrollHeight
-    setInputMsg('')
+    contentBoxEl.current.scrollTop = contentBoxEl.current.scrollHeight;
+    setInputMsg("");
   }
 
   useEffect(() => {
@@ -156,7 +276,7 @@ function ActivitySpace(props) {
         }
       });
       setMsgData(newData);
-      contentBoxEl.current.scrollTop = contentBoxEl.current.scrollHeight
+      contentBoxEl.current.scrollTop = contentBoxEl.current.scrollHeight;
     });
 
     return () => {
@@ -171,29 +291,33 @@ function ActivitySpace(props) {
   }
 
   useEffect(() => {
-    document.addEventListener('click', handleEmojiClose);
-    return () => document.removeEventListener('click', handleEmojiClose);
-  }, [isEmojiOpen])
+    document.addEventListener("click", handleEmojiClose);
+    return () => document.removeEventListener("click", handleEmojiClose);
+  }, [isEmojiOpen]);
 
   function handleEmojiInput(e) {
     const text = e.target.innerText;
-    setInputMsg(inputMsg.slice(0, inputIndex.start) + text + inputMsg.slice(inputIndex.end));
+    setInputMsg(
+      inputMsg.slice(0, inputIndex.start) +
+        text +
+        inputMsg.slice(inputIndex.end)
+    );
     setInputIndex({
       start: inputIndex.start + text.length,
       end: inputIndex.start + text.length,
-    })
+    });
   }
 
   function getInputSelection(e) {
     setInputIndex({
       start: e.target.selectionStart,
       end: e.target.selectionEnd,
-    })
+    });
   }
 
   return (
     <div className="activitySpaceArea">
-      <ActivitySpaceToolbar members={props.members} info={props.info} />
+      <ActivitySpaceToolbar members={props.members} info={props.info} toggleMenu={props.toggleMenu} />
       <div className="contentBox scrollbar" ref={contentBoxEl}>
         {useMemo(
           () => (
@@ -213,11 +337,13 @@ function ActivitySpace(props) {
           value={inputMsg}
         />
         <ul className="inputTool">
-          <li className={classNames('emoji', { open: isEmojiOpen })}>
-            <button onClick={(e) => {
+          <li className={classNames("emoji", { open: isEmojiOpen })}>
+            <button
+              onClick={(e) => {
                 e.stopPropagation();
-                setIsEmojiOpen(!isEmojiOpen)
-              }}>
+                setIsEmojiOpen(!isEmojiOpen);
+              }}
+            >
               <span className="material-icons">sentiment_satisfied_alt</span>
             </button>
             <div className="emojiMenu" onClick={(e) => e.stopPropagation()}>
