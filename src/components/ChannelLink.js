@@ -4,11 +4,10 @@ import '../scss/ChannelType.scss';
 import React, { useEffect, useContext, useState, useMemo, useRef } from "react";
 import classNames from "classnames";
 
-function ChannelLink(props) {
+function ChannelLink({ setIsOpen, isMenuOpen, setChannelModalType }) {
     const [sideMenuHeight, setSideMenuHeight] = useState(0);
 
     let resizeWindow = () => {
-        console.log(window.innerWidth);
         if (window.innerWidth <= 1024) {
             setSideMenuHeight(window.innerHeight);
         } else {
@@ -23,7 +22,7 @@ function ChannelLink(props) {
     }, []);
 
     return (
-        <div className={classNames('channelTypeArea', props.isMenuOpen ? 'open': '')} style={{'height': sideMenuHeight > 0 ? sideMenuHeight - 73 + 'px' : ''}}>
+        <div className={classNames('channelTypeArea', isMenuOpen ? 'open': '')} style={{'height': sideMenuHeight > 0 ? sideMenuHeight - 73 + 'px' : ''}}>
             <ul>
                 <li>
                     <button className="btn home">
@@ -32,7 +31,10 @@ function ChannelLink(props) {
                     </button>
                 </li>
                 <li>
-                    <button className="btn">
+                    <button className="btn" onClick={() => {
+                        setChannelModalType('create');
+                        setIsOpen(true);
+                    }}>
                         <span className="material-icons">add</span>
                         <p className="title">建立頻道</p>
                     </button>

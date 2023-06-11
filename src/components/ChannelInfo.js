@@ -2,7 +2,7 @@ import React, { useEffect, useContext, useState } from "react";
 import "../scss/ChannelInfo.scss";
 
 function MemberList(props) {
-  const members = props.members??[];
+  const members = props.members ?? [];
   const listItems = members.map((user) => (
     <li key={user.uid}>
       <button className="current">
@@ -19,21 +19,41 @@ function MemberList(props) {
     </li>
   ));
 
-  return(
+  return (
     <ul>
       {listItems}
     </ul>
   )
 }
 
-function ChannelInfo(props) {
+function ChannelInfo({ userId, info, members, setModalOpen, setModalType }) {
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    if (userId === info?.owner) {
+      setIsEditing(true);
+    } else {
+      setIsEditing(false);
+    }
+  }, [info, userId]);
+
   return (
     <div className="ChannelInfoArea">
-      <h2>{props.info?.title}</h2>
-      <p className="intro">{props.info?.description}</p>
+      <div className="head">
+        <h2>{info?.title}</h2>
+        {isEditing && (
+          <button className="btn editBtn" onClick={() => {
+            setModalType('edit');
+            setModalOpen(true);
+          }}>
+            <span className="material-icons">edit</span>
+          </button>
+        )}
+      </div>
+      <p className="intro">{info?.description}</p>
       <div className="channelListBox">
         <p className="type">頻道成員</p>
-        <MemberList members={props.members} />
+        <MemberList members={members} />
       </div>
     </div>
   );

@@ -21,7 +21,6 @@ function dateTransform(str, ts) {
       "s",
       date.getSeconds() >= 10 ? date.getSeconds() : "0" + date.getSeconds()
     );
-  console.log(newStr);
   return newStr;
 }
 

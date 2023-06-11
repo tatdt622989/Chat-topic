@@ -21,6 +21,8 @@ import {
   query,
   limitToLast,
   push,
+  update,
+  remove,
 } from "firebase/database";
 import {
   getStorage,
@@ -324,7 +326,6 @@ async function checkLoginStatus() {
 }
 
 async function getChannelInfo(uid, type, channelId) {
-  console.log("getChannelInfo", uid, type, channelId);
   const dbRef = ref(db, `channels/${channelId}/info`);
   if (type && channelId) {
     const channelInfo = await get(dbRef)
@@ -346,11 +347,40 @@ async function getChannelInfo(uid, type, channelId) {
 async function CRUDRequest(method, url, data) {
   let dbRef = ref(db, url);
   let res;
-  switch (method) {
-    case "push":
-      dbRef = push(dbRef);
-      return await set(dbRef, data);
-    default:
+  try {
+    switch (method) {
+      case "push":
+        dbRef = push(dbRef);
+        return await set(dbRef, data).then(() => {
+          return true;
+        });
+      case "update":
+        return await update(dbRef, data).then(() => {
+          return true;
+        });
+      case "get":
+        return await get(dbRef)
+          .then((snapshot) => {
+            return snapshot.val();
+          })
+          .catch((error) => {
+            console.error(error);
+            return false;
+          });
+      case "delete":
+        return await remove(dbRef)
+          .then(() => {
+            return true;
+          })
+          .catch((error) => {
+            console.error(error);
+            return false;
+          });
+      default:
+    }
+  } catch (error) {
+    console.error(error);
+    return false;
   }
   return res;
 }

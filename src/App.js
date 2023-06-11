@@ -17,38 +17,6 @@ const initialState = {
   toastList: [],
 };
 
-class ToastItem {
-  constructor(state, payload) {
-    this.payload = payload;
-    this.state = state;
-  }
-
-  updateToast() {
-    console.log("update toast data!");
-    const obj = {
-      theme: this.payload.theme,
-      action: this.payload.action,
-      title: this.payload.title,
-      content: this.payload.content,
-      id: this.payload.id,
-    };
-    if (obj.action === "add") {
-      this.state.toastList.push(obj);
-    }
-    if (obj.action === "delete") {
-      const index = this.state.toastList.filter((item, i) => {
-        if (item.id === obj.id) {
-          return i;
-        }
-      });
-      if (index >= 0) {
-        this.state.toastList.splice(index, 1);
-      }
-    }
-    return this.state;
-  }
-}
-
 function reducer(state, action) {
   const editableState = { ...state };
   switch (action.type) {
@@ -65,8 +33,19 @@ function reducer(state, action) {
       editableState.userId = action.payload;
       return editableState;
     case "setToastList":
-      const item = new ToastItem(editableState, action.payload);
-      return item.updateToast();
+      const obj = {
+        theme: action.payload.theme,
+        action: action.payload.action,
+        title: action.payload.title,
+        content: action.payload.content,
+        id: action.payload.id,
+      }
+      if (action.payload.action === "add") {
+        editableState.toastList = [...editableState.toastList, obj];
+      } else if (action.payload.action === "delete") {
+        editableState.toastList = editableState.toastList.filter((item) => item.id !== action.payload.id);
+      }
+      return editableState;
     default:
       throw new Error();
   }

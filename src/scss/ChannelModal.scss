@@ -1,0 +1,159 @@
+@import 'setting';
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba($mainColor, 0.5);
+    backdrop-filter: blur(5px);
+    display: block;
+
+    .modal-header {
+        background-color: $secColor;
+        border-color: darken($secColor, 5%);
+
+        h5 {
+            color: $mainColor;
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 0.8px;
+        }
+    }
+
+    .modal-content {
+        background-color: $secColor;
+    }
+
+    .modal-footer {
+        border-color: darken($secColor, 5%);
+        button {
+            background-color: $mainColor;
+            width: 120px;
+            border-radius: 12px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: $secColor;
+            height: 44px;
+            &:hover {
+                background-color: darken($mainColor, 8%);
+            }
+
+            &.deleteBtn {
+                background-color: #952e2e;
+                &:hover {
+                    background-color: darken(#952e2e, 5%);
+                }
+            }
+
+            &.cancelBtn {
+                background-color: lighten($secColor, 15%);
+                color: $mainColor;
+                &:hover {
+                    background-color: lighten($secColor, 20%);
+                }
+            }
+        }
+    }
+
+    form {
+        .switch-group {
+            display: block;
+        }
+
+        label {
+            font-weight: bold;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 12px;
+            border: 0;
+            background-color: lighten($secColor, 15%);
+            color: $mainColor;
+            margin-bottom: 20px;
+            @extend %ts;
+
+            &:focus {
+                box-shadow: none;
+                background-color: lighten($secColor, 20%);
+            }
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 12px;
+            border: 0;
+            background-color: lighten($secColor, 15%);
+            color: $mainColor;
+            margin-bottom: 20px;
+            height: 100px;
+            @extend %ts;
+            resize: none;
+
+            &:focus {
+                box-shadow: none;
+                background-color: lighten($secColor, 20%);
+            }
+        }
+
+        .switch {
+            width: 90px;
+            height: 44px;
+            background-color: lighten($secColor, 15%);
+            border-radius: 12px;
+            margin-bottom: 0;
+            position: relative;
+            cursor: pointer;
+
+            @include after {
+                cursor: pointer;
+                width: 36px;
+                height: 36px;
+                background-color: darken($secColor, 7%);
+                top: 4px;
+                border-radius: 12px;
+                transform: translateX(4px);
+                @extend %ts;
+            }
+        }
+
+        #privacySwitch {
+            display: none;
+
+            &:checked {
+                +.switch {
+                    background-color: lighten($secColor, 15%);
+
+                    &:after {
+                        background-color: $mainColor;
+                        transform: translateX(50px);
+                    }
+                }
+            }
+        }
+    }
+}
+
+.modal-fade-enter {
+    opacity: 0;
+}
+
+.modal-fade-enter-active {
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
+.model-fade-exit {
+    opacity: 1;
+}
+
+.modal-fade-exit-active {
+    opacity: 0;
+    transition: opacity 0.3s;
+}

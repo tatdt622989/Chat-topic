@@ -6,11 +6,30 @@
     box-sizing: border-box;
     border-right: 1px solid lighten($mainColor, 10%);
     flex-shrink: 0;
+    padding-top: 20px;
     @include media(1024) {
         display: none;
     }
-    h2 {
+    .head {
+        display: flex;
+        align-items: center;
         margin-bottom: 20px;
+        justify-content: space-between;
+        h2 {
+            margin: 0;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .editBtn {
+            flex-shrink: 0;
+            @include center;
+            width: 40px;
+            height: 40px;
+            span {
+                font-size: 22px;
+            }
+        }
     }
     p {
         &.type {

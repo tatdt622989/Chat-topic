@@ -26,7 +26,7 @@ function ActivitySpaceToolbar(props) {
             <span className="material-icons">search</span>
           </button>
         </li>
-        <li className="add">
+        {/* <li className="add">
           <button className="btn">
             <span className="material-icons">person_add</span>
           </button>
@@ -35,7 +35,7 @@ function ActivitySpaceToolbar(props) {
           <button className="btn">
             <span className="material-icons">people_alt</span>
           </button>
-        </li>
+        </li> */}
         <li className="personal">
           <button className="btn">
             <span className="material-icons">person</span>
@@ -98,7 +98,7 @@ function MsgList(props) {
     );
   });
 
-  return <ul className="msgList">{listItems}</ul>;
+  return <ul className="msgList" onClick={() => props.toggleMenu(false)}>{listItems}</ul>;
 }
 
 function EmojiList(props) {
@@ -321,7 +321,7 @@ function ActivitySpace(props) {
       <div className="contentBox scrollbar" ref={contentBoxEl}>
         {useMemo(
           () => (
-            <MsgList msgData={msgData} members={props.members} />
+            <MsgList msgData={msgData} members={props.members} toggleMenu={props.toggleMenu} />
           ),
           [props.members, msgData]
         )}
