@@ -4,7 +4,34 @@ import { CSSTransition } from 'react-transition-group';
 import '../scss/ChannelModal.scss';
 import { CRUDRequest, auth } from "../Firebase";
 
-function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId }) {
+function MemberList({ members, setTempMembers }) {
+    function handleRemoveMember(uid) {
+        setTempMembers(members.filter((item) => item.uid !== uid));
+    }
+
+    const listItems = members.map((user) => (
+        <li key={user.uid}>
+            <div className="item">
+                <div className="imgBox">
+                    <img src={user.photoURL} alt="" />
+                </div>
+                <div className="textBox">
+                    <p className="name">{user.name}</p>
+                </div>
+                <button className="removeBtn" onClick={() => handleRemoveMember(user.uid)}>
+                    <span className="material-icons">remove_circle</span>
+                </button>
+            </div>
+        </li>
+    ));
+    return (
+        <ul className="memberList">
+            {listItems}
+        </ul>
+    );
+}
+
+function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, members }) {
     const nodeRef = React.useRef(null);
     // 全域資料及方法
     const { state, dispatch } = useContext(GlobalContext);
@@ -12,6 +39,8 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId }) 
     const [channelDescription, setChannelDescription] = useState("");
     const [channelPrivacy, setChannelPrivacy] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [tempMembers, setTempMembers] = useState([]);
+    const [memberEmail, setMemberEmail] = useState("");
 
     const pushErrorMsg = useCallback((msg) => {
         console.log("Entering pushErrorMsg"); // 在函式開頭新增這行
@@ -83,6 +112,61 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId }) 
         setIsLoading(false);
     };
 
+    const handleDelete = async () => {
+        console.log("handleDelete");
+        if (isLoading) return;
+        const isConfirm = window.confirm('確定要刪除嗎？');
+        if (!isConfirm) return;
+        setIsLoading(true);
+        const url = `/channels/${channelId}/`;
+        const res = await CRUDRequest("delete", url);
+        if (res) {
+            setIsOpen(false);
+        } else {
+            pushErrorMsg("刪除失敗");
+        }
+    };
+
+    const handleAddMember = async (uid) => {
+        console.log("handleAddMember");
+        if (isLoading) return;
+        if (!uid) return;
+        setIsLoading(true);
+        const url = `/channels/${channelId}/members/${uid}/`;
+        const res = await CRUDRequest("set", url, true);
+        if (res) {
+            setIsOpen(false);
+        } else {
+            pushErrorMsg("新增失敗");
+        }
+        setIsLoading(false);
+    };
+
+    const handleMemberRemove = async (uid) => {};
+
+    const handleMemberSearch = async () => {
+        console.log("handleMemberSearch");
+        if (isLoading) return;
+        if (!memberEmail.trim()) return;
+        setIsLoading(true);
+        try {
+            // const res = await auth.fetchSignInMethodsForEmail(memberEmail);
+            // if (res.length === 0) {
+            //     pushErrorMsg("查無此帳號");
+            // } else {
+            //     const uid = res[0].split(".")[0];
+            //     if (members.find((item) => item.uid === uid)) {
+            //         pushErrorMsg("此帳號已在頻道中");
+            //     } else {
+            //         handleAddMember(uid);
+            //     }
+            // }
+        } catch (err) {
+            pushErrorMsg("查無此帳號");
+        }
+        setIsLoading(false);
+    };
+
     useEffect(() => {
         if (channelInfo) {
             setChannelTitle(channelInfo.title);
@@ -103,6 +187,12 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId }) 
             setChannelPrivacy(channelInfo.privacy);
         }
     }, [isOpen]);
+
+    useEffect(() => {
+        if (members) {
+            setTempMembers(members);
+        }
+    }, [members]);
 
     return (
         <CSSTransition
@@ -126,7 +216,7 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId }) 
                         </div>
                         <div className="modal-body">
                             <form onSubmit={(e) => e.preventDefault()}>
-                                <div className="mb-3 switch-group">
+                                <div className="mb-3 switchGroup">
                                     <label className="form-label">是否公開</label>
                                     <input type="checkbox" id="privacySwitch" />
                                     <label htmlFor="privacySwitch" className="form-label switch"></label>
@@ -151,10 +241,27 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId }) 
                                         onChange={(e) => setChannelDescription(e.target.value)}
                                     />
                                 </div>
+                                <div className="mb-3">
+                                    <label className="form-label">頻道成員</label>
+                                    <div className="form-control addBar">
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="請輸入email新增頻道成員"
+                                            value={memberEmail}
+                                            onChange={(e) => setMemberEmail(e.target.value)}
+                                        />
+                                        <button type="button" className="btn btn-primary" onClick={() => {
+                                            handleMemberSearch();
+                                            // setMemberEmail("");
+                                        }}>新增</button>
+                                    </div>
+                                    <MemberList members={tempMembers} setTempMembers={setTempMembers} />
+                                </div>
                             </form>
                         </div>
                         <div className="modal-footer">
-                            {modalType === 'edit' && <button type="button" className="btn btn-danger deleteBtn">刪除</button>}
+                            {modalType === 'edit' && <button type="button" className="btn btn-danger deleteBtn" onClick={() => handleDelete()}>刪除</button>}
                             {/* <button type="button" className="btn btn-secondary cancelBtn">取消</button> */}
                             <button type="button" className="btn btn-primary" onClick={handleSave}>存檔</button>
                         </div>

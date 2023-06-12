@@ -106,6 +106,7 @@ function Home() {
           channelInfo={channelInfo}
           modalType={channelModalType}
           channelId={channelId}
+          members={channelMembers}
           />
       </div>
       <Toast />
