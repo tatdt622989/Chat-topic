@@ -148,6 +148,7 @@ async function updateDbUserData(method, user) {
           name: user.displayName,
           photoURL: user.photoURL,
           description: "描述要打什麼好呢？🤔",
+          email: user.email,
         });
       }
       break;

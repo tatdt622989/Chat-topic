@@ -39,20 +39,20 @@ function Home() {
     memberOff = onValue(membersRef, async (snapshot) => {
       const data = snapshot.val() ?? {};
       const userUids = Object.keys(data);
+      const userChannelData = Object.values(data);
       const requests = [];
       userUids.forEach((uid) => {
         const usersRef = ref(db, `users/${uid}/publicInfo`);
         const res = get(usersRef)
           .then((snapshot) => snapshot.val())
           .catch((err) => err);
-        console.log(res);
         requests.push(res);
       });
 
       await Promise.all(requests).then((values) => {
         console.log("members:", values);
         const newVal = values.map((obj, i) => {
-          return { ...obj, uid: userUids[i] };
+          return { ...obj, uid: userUids[i], ...userChannelData[i] };
         });
         setChannelMembers(newVal);
       });

@@ -5,6 +5,8 @@ import '../scss/ChannelModal.scss';
 import { CRUDRequest, auth } from "../Firebase";
 
 function MemberList({ members, setTempMembers }) {
+    // 全域資料及方法
+    const { state, dispatch } = useContext(GlobalContext);
     function handleRemoveMember(uid) {
         setTempMembers(members.filter((item) => item.uid !== uid));
     }
@@ -18,9 +20,9 @@ function MemberList({ members, setTempMembers }) {
                 <div className="textBox">
                     <p className="name">{user.name}</p>
                 </div>
-                <button className="removeBtn" onClick={() => handleRemoveMember(user.uid)}>
+                {user.uid !== state.userId && <button className="removeBtn" onClick={() => handleRemoveMember(user.uid)}>
                     <span className="material-icons">remove_circle</span>
-                </button>
+                </button>}
             </div>
         </li>
     ));
@@ -96,12 +98,23 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
             }
         }
         if (modalType === "edit") {
+            const tempMembersObj = {};
+            tempMembers.forEach((item) => {
+                tempMembersObj[item.uid] = {
+                    joinTimestamp: item.joinTimestamp,
+                    lastActivity: item.lastActivity,
+                };
+            });
             const data = {
-                title: channelTitle,
-                description: channelDescription,
-                privacy: channelPrivacy,
+                info: {
+                    title: channelTitle,
+                    description: channelDescription,
+                    privacy: channelPrivacy,
+                    owner: state.userId,
+                },
+                members: tempMembersObj,
             };
-            const url = `/channels/${channelId}/info/`;
+            const url = `/channels/${channelId}/`;
             const res = await CRUDRequest("update", url, data);
             if (res) {
                 setIsOpen(false);
@@ -127,40 +140,47 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
         }
     };
 
-    const handleAddMember = async (uid) => {
-        console.log("handleAddMember");
-        if (isLoading) return;
-        if (!uid) return;
-        setIsLoading(true);
-        const url = `/channels/${channelId}/members/${uid}/`;
-        const res = await CRUDRequest("set", url, true);
-        if (res) {
-            setIsOpen(false);
-        } else {
-            pushErrorMsg("新增失敗");
-        }
-        setIsLoading(false);
-    };
-
-    const handleMemberRemove = async (uid) => {};
-
     const handleMemberSearch = async () => {
         console.log("handleMemberSearch");
         if (isLoading) return;
         if (!memberEmail.trim()) return;
         setIsLoading(true);
         try {
-            // const res = await auth.fetchSignInMethodsForEmail(memberEmail);
-            // if (res.length === 0) {
-            //     pushErrorMsg("查無此帳號");
-            // } else {
-            //     const uid = res[0].split(".")[0];
-            //     if (members.find((item) => item.uid === uid)) {
-            //         pushErrorMsg("此帳號已在頻道中");
-            //     } else {
-            //         handleAddMember(uid);
-            //     }
-            // }
+            const res = await CRUDRequest("get", `/users/`);
+            if (res) {
+                console.log(res);
+                let user = null;
+                Object.entries(res).find((item) => {
+                    console.log(item[1].publicInfo.email, memberEmail);
+                    if (item[1].publicInfo.email === memberEmail) {
+                        user = {};
+                        user.description = item[1].publicInfo.description;
+                        user.email = item[1].publicInfo.email;
+                        user.name = item[1].publicInfo.name;
+                        user.photoURL = item[1].publicInfo.photoURL;
+                        user.id = item[0];
+                        return true;
+                    }
+                });
+                console.log(user);
+                if (user) {
+                    // 已經是頻道成員，不可重複新增
+                    if (tempMembers.find((item) => item.uid === user.id)) {
+                        pushErrorMsg("此帳號已經是頻道成員");
+                        setIsLoading(false);
+                        return;
+                    }
+                    if (user.uid === auth.currentUser.uid) {
+                        pushErrorMsg("無法新增自己");
+                        setIsLoading(false);
+                        return;
+                    }
+                    setTempMembers([...tempMembers, user]);
+                    setMemberEmail("");
+                } else {
+                    pushErrorMsg("查無此帳號");
+                }
+            }
         } catch (err) {
             pushErrorMsg("查無此帳號");
         }
@@ -218,7 +238,13 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
                             <form onSubmit={(e) => e.preventDefault()}>
                                 <div className="mb-3 switchGroup">
                                     <label className="form-label">是否公開</label>
-                                    <input type="checkbox" id="privacySwitch" />
+                                    <input type="checkbox" id="privacySwitch" checked={channelPrivacy === 'public'} onChange={(e) => {
+                                        if (e.target.checked) {
+                                            setChannelPrivacy('public');
+                                        } else {
+                                            setChannelPrivacy('private');
+                                        }
+                                    }} />
                                     <label htmlFor="privacySwitch" className="form-label switch"></label>
                                 </div>
                                 <div className="mb-3">
@@ -253,10 +279,10 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
                                         />
                                         <button type="button" className="btn btn-primary" onClick={() => {
                                             handleMemberSearch();
-                                            // setMemberEmail("");
+                                            setMemberEmail("");
                                         }}>新增</button>
                                     </div>
-                                    <MemberList members={tempMembers} setTempMembers={setTempMembers} />
+                                    {modalType === 'edit' && <MemberList members={tempMembers} setTempMembers={setTempMembers} />}
                                 </div>
                             </form>
                         </div>
