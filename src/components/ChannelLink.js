@@ -4,7 +4,7 @@ import '../scss/ChannelType.scss';
 import React, { useEffect, useContext, useState, useMemo, useRef } from "react";
 import classNames from "classnames";
 
-function ChannelLink({ setIsOpen, isMenuOpen, setChannelModalType }) {
+function ChannelLink({ setIsChannelModalOpen, isMenuOpen, setChannelModalType, setIsChannelSearchModalOpen }) {
     const [sideMenuHeight, setSideMenuHeight] = useState(0);
 
     let resizeWindow = () => {
@@ -33,14 +33,16 @@ function ChannelLink({ setIsOpen, isMenuOpen, setChannelModalType }) {
                 <li>
                     <button className="btn" onClick={() => {
                         setChannelModalType('create');
-                        setIsOpen(true);
+                        setIsChannelModalOpen(true);
                     }}>
                         <span className="material-icons">add</span>
                         <p className="title">建立頻道</p>
                     </button>
                 </li>
                 <li>
-                    <button className="btn">
+                    <button className="btn" onClick={() => {
+                        setIsChannelSearchModalOpen(true);
+                    }}>
                         <span className="material-icons">travel_explore</span>
                         <p className="title">搜尋頻道</p>
                     </button>

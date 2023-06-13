@@ -2,6 +2,7 @@ import ActivitySpace from "../components/ActivitySpace";
 import ChannelLink from "../components/ChannelLink";
 import ChannelInfo from "../components/ChannelInfo";
 import ChannelModal from "../components/ChannelModal";
+import ChannelSearchModal from "../components/ChannelSearchModal";
 import React, { useEffect, useContext, useState } from "react";
 import { getChannelInfo, ref, onValue, db, get } from "../Firebase";
 import GlobalContext from "../GlobalContext";
@@ -17,6 +18,7 @@ function Home() {
   const [chatId, setChatId] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(0);
   const [isChannelModalOpen, setIsChannelModalOpen] = useState(false);
+  const [isChannelSearchModalOpen, setIsChannelSearchModalOpen] = useState(false);
   const [channelModalType, setChannelModalType] = useState("create");
 
   let navigate = useNavigate();
@@ -82,8 +84,9 @@ function Home() {
     <div className="view home">
       <ChannelLink 
         isMenuOpen={isMenuOpen}
-        setIsOpen={setIsChannelModalOpen}
-        setChannelModalType={setChannelModalType} 
+        setIsChannelModalOpen={setIsChannelModalOpen}
+        setChannelModalType={setChannelModalType}
+        setIsChannelSearchModalOpen={setIsChannelSearchModalOpen} 
       />
       <div className="contentArea">
         <ChannelInfo
@@ -108,6 +111,10 @@ function Home() {
           channelId={channelId}
           members={channelMembers}
           />
+        <ChannelSearchModal 
+          isOpen={isChannelSearchModalOpen}
+          setIsOpen={setIsChannelSearchModalOpen}
+        />
       </div>
       <Toast />
     </div>
