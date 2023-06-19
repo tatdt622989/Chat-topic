@@ -1,11 +1,12 @@
 import "../scss/Toast.scss";
 import React, { useEffect, useContext, useState } from "react";
 import GlobalContext from "../GlobalContext";
+import classNames from "classnames";
 
-function ToastItem({ title, id, content }) {
+function ToastItem({ title, id, content, theme }) {
   const { state, dispatch } = useContext(GlobalContext);
   return (
-    <li className="toast">
+    <li className={classNames("toast", theme)}>
       <div className="header">
         <p className="title">{title}</p>
         <button className="remove" onClick={() => {
@@ -31,7 +32,7 @@ function ToastRender() {
   const list = state.toastList ? state.toastList : [];
   const listItem = list.map((obj, i) => {
     return (
-      <ToastItem key={i} title={obj.title} content={obj.content} id={obj.id} />
+      <ToastItem key={i} title={obj.title} content={obj.content} id={obj.id} theme={obj.theme} />
     )
   });
   return (
@@ -46,7 +47,7 @@ function Toast() {
   const { state, dispatch } = useContext(GlobalContext);
 
   useEffect(() => {
-    console.log(JSON.stringify(state.toastList), 'toast list aaa');
+    console.log(JSON.stringify(state.toastList), 'toast list');
   }, [state.toastList]);
 
   return (

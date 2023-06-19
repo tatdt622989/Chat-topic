@@ -1,6 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import {
   getAuth,
   GoogleAuthProvider,
@@ -37,7 +38,7 @@ import {
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyD-qaVx6w8ko-HENXWfKe6_g4lIW7Fsv4Q",
-  authDomain: "my-chat-topic.firebaseapp.com",
+  authDomain: "chat.6yuwei.com",
   databaseURL:
     "https://my-chat-topic-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "my-chat-topic",
@@ -49,6 +50,7 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+const functions = getFunctions(app, 'asia-northeast3');
 const analytics = getAnalytics(app);
 const db = getDatabase(app);
 const storage = getStorage(app);
@@ -56,12 +58,15 @@ const provider = new GoogleAuthProvider();
 
 const auth = getAuth();
 
-async function fileUpload(user, file) {
-  console.log(file, user.uid);
-  if (!file || !user) {
-    return;
+// firebase functions
+const getUserChannels = httpsCallable(functions, 'getUserChannels');
+const createChannel = httpsCallable(functions, 'createChannel');
+
+async function fileUploader(path, file) {
+  if (!path || !file) {
+    return false;
   }
-  const fileRef = storageRef(storage, `head_shot/${user.uid}/${Date.now()}`);
+  const fileRef = storageRef(storage, path);
   const uploadTask = uploadBytesResumable(fileRef, file);
   const link = await new Promise((resolve, reject) => {
     uploadTask.on(
@@ -84,6 +89,8 @@ async function fileUpload(user, file) {
             break;
           case "storage/unknown":
             // Unknown error occurred, inspect error.serverResponse
+            break;
+          default:
             break;
         }
 
@@ -159,12 +166,11 @@ async function updateDbUserData(method, user) {
 }
 
 async function createUser(email, password, name, file) {
-  console.log(email, password);
   return await createUserWithEmailAndPassword(auth, email, password)
     .then(async (userCredential) => {
       // Signed in
       const { user } = userCredential;
-      const res = await fileUpload(user, file);
+      const res = await fileUploader(`head_shot/${user.uid}/${file.name}`, file);
       if (res && res.url) {
         await updateUserData(name, res.url);
         await updateDbUserData("create", user);
@@ -345,7 +351,7 @@ async function getChannelInfo(uid, type, channelId) {
   };
 }
 
-async function CRUDRequest(method, url, data) {
+async function handleCRUDReq(method, url, data) {
   let dbRef = ref(db, url);
   let res;
   try {
@@ -357,6 +363,10 @@ async function CRUDRequest(method, url, data) {
         });
       case "update":
         return await update(dbRef, data).then(() => {
+          return true;
+        });
+      case "updateMultiPath":
+        return await update(ref(db), data).then(() => {
           return true;
         });
       case "get":
@@ -388,14 +398,16 @@ async function CRUDRequest(method, url, data) {
 
 export {
   login,
-  fileUpload,
+  fileUploader,
   createUser,
   getChannelInfo,
   updateUserData,
   updateDbUserData,
   checkLoginStatus,
   onAuthStateChanged,
-  CRUDRequest,
+  handleCRUDReq,
+  createChannel,
+  getUserChannels,
   auth,
   db,
   ref,

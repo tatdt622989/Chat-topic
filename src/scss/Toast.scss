@@ -21,6 +21,23 @@
     // width: 100%;
     flex-grow: 1;
     margin-bottom: 20px;
+    &.error {
+      background-color: #952e2e;
+      .header {
+        .title {
+          color: #fff;
+        }
+      }
+      .content {
+        color: #fff;
+      }
+      .remove {
+        background-color: #952e2e;
+        &:hover {
+          background-color: darken(#952e2e, 5%);
+        }
+      }
+    }
     .header {
       display: flex;
       justify-content: space-between;

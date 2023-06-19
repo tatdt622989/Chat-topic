@@ -3,6 +3,45 @@ import { Link } from "react-router-dom";
 import '../scss/ChannelType.scss';
 import React, { useEffect, useContext, useState, useMemo, useRef } from "react";
 import classNames from "classnames";
+import GlobalContext from "../GlobalContext";
+import { handleCRUDReq, getUserChannels } from "../Firebase";
+
+function PersonalChannelLink() {
+    // 全域資料及方法
+    const { state, dispatch } = useContext(GlobalContext);
+    const [channels, setChannels] = useState([]);
+    async function getPersonalChannel() {
+        const res = await getUserChannels({ text: '' }).then((res) => res).catch((err) => err);
+        if (res.data) {
+            const channelsEl = res.data.map((channel) => {
+                return (
+                    <li key={channel.id}>
+                        <Link to={`/channel/${channel.id}`} className="btn">
+                            <div className="imgBox">
+                                {
+                                    channel.info.photoURL ? <img src={channel.info.photoURL} alt={channel.info.title}/> :
+                                    <span className="material-icons">stars</span>
+                                }
+                            </div>
+                            <p className="title">{channel.info.title}</p>
+                        </Link>
+                    </li>
+                );
+            });
+            setChannels(channelsEl);
+        }
+    }
+
+    useEffect(() => {
+        getPersonalChannel();
+    }, []);
+
+    return (
+        <ul className="channelList">
+            {channels}
+        </ul>
+    );
+}
 
 function ChannelLink({ setIsChannelModalOpen, isMenuOpen, setChannelModalType, setIsChannelSearchModalOpen }) {
     const [sideMenuHeight, setSideMenuHeight] = useState(0);
@@ -22,8 +61,8 @@ function ChannelLink({ setIsChannelModalOpen, isMenuOpen, setChannelModalType, s
     }, []);
 
     return (
-        <div className={classNames('channelTypeArea', isMenuOpen ? 'open': '')} style={{'height': sideMenuHeight > 0 ? sideMenuHeight - 73 + 'px' : ''}}>
-            <ul>
+        <div className={classNames('channelTypeArea', isMenuOpen ? 'open' : '')} style={{ 'height': sideMenuHeight > 0 ? sideMenuHeight - 73 + 'px' : '' }}>
+            <ul className="infoList">
                 <li>
                     <button className="btn home">
                         <span className="material-icons">home</span>
@@ -47,13 +86,8 @@ function ChannelLink({ setIsChannelModalOpen, isMenuOpen, setChannelModalType, s
                         <p className="title">搜尋頻道</p>
                     </button>
                 </li>
-                <li>
-                    <Link to={`/channel/public2`} className="btn">
-                        <span className="material-icons">public</span>
-                        <p className="title">公開頻道</p>
-                    </Link>
-                </li>
             </ul>
+            <PersonalChannelLink />
         </div>
     )
 }

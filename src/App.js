@@ -14,6 +14,7 @@ const initialState = {
   userEmail: "",
   userName: "",
   userPhotoURL: "",
+  userChannelList: [],
   toastList: [],
 };
 
@@ -31,6 +32,9 @@ function reducer(state, action) {
       return editableState;
     case "setUserId":
       editableState.userId = action.payload;
+      return editableState;
+    case "setUserChannelList":
+      editableState.userChannelList = action.payload;
       return editableState;
     case "setToastList":
       const obj = {

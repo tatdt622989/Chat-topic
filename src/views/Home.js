@@ -4,7 +4,7 @@ import ChannelInfo from "../components/ChannelInfo";
 import ChannelModal from "../components/ChannelModal";
 import ChannelSearchModal from "../components/ChannelSearchModal";
 import React, { useEffect, useContext, useState } from "react";
-import { getChannelInfo, ref, onValue, db, get } from "../Firebase";
+import { handleCRUDReq, getChannelInfo, ref, onValue, db, get } from "../Firebase";
 import GlobalContext from "../GlobalContext";
 import { useParams, useNavigate } from "react-router-dom";
 import Toast from "../components/Toast";
@@ -24,7 +24,6 @@ function Home() {
   let navigate = useNavigate();
 
   function toggleMenu(isOpen) {
-    console.log(typeof isOpen);
     if (typeof isOpen !== 'boolean') {
       setIsMenuOpen(!isMenuOpen);
     } else {
@@ -32,9 +31,30 @@ function Home() {
     }
   }
 
-  // 啟動Firebase監聽器
   useEffect(() => {
-    console.log("mount");
+    async function fetchData() {
+      const info = await getChannelInfo(state.userId, chatType, channelId);
+      setChannelInfo(info);
+      if (!info) {
+        navigate("/channel/public");
+      }
+
+      // validate the user's access to the channel
+      const members = await handleCRUDReq('get', `channels/${channelId}/members`);
+      const memberIds = Object.keys(members ?? {});
+      if (!memberIds.includes(state.userId) && info.privacy === "private") {
+        navigate("/channel/public");
+      }
+
+      // 更新使用者最後進入頻道的時間
+      const updates = {};
+      updates[`/${channelId}`] = { lastAccessTime: Date.now() };
+      handleCRUDReq('update', `users/${state.userId}/channels`, updates);
+    }
+    if (chatType === "channel" && state.userId && !isChannelModalOpen) {
+      fetchData();
+    }
+
     let memberOff;
     // 頻道成員監聽器，變動會自動更新當前頻道
     const membersRef = ref(db, `channels/${channelId}/members`);
@@ -59,26 +79,14 @@ function Home() {
         setChannelMembers(newVal);
       });
     });
+
     return () => {
       console.log("unmount");
       if (memberOff) {
         memberOff();
       }
     };
-  }, [channelId]);
-
-  useEffect(() => {
-    async function fetchData() {
-      const info = await getChannelInfo(state.userId, chatType, channelId);
-      setChannelInfo(info);
-      if (!info) {
-        navigate("/channel/public");
-      }
-    }
-    if (chatType === "channel" && state.userId && !isChannelModalOpen) {
-      fetchData();
-    }
-  }, [chatType, state.userId, channelId, isChannelModalOpen]);
+  }, [chatType, state.userId, channelId, isChannelModalOpen, navigate]);
 
   return (
     <div className="view home">

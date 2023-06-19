@@ -2,9 +2,10 @@ import "../scss/Signup.scss";
 import React, { useEffect, useContext, useState, useCallback } from "react";
 import GlobalContext from "../GlobalContext";
 import classNames from "classnames";
-import { fileUpload, updateUserData, login, createUser } from "../Firebase";
+import { fileUploader, updateUserData, login, createUser } from "../Firebase";
 import Toast from "../components/Toast";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import imgToBase64 from "../utils/imgToBase64";
 
 function Signup() {
   // 全域資料及方法
@@ -53,7 +54,7 @@ function Signup() {
         },
       });
     }, 5000);
-  }, [dispatch])
+  }, [dispatch]);
 
   const ruleChecker = useCallback((res) => {
     const newValidation = { ...validation };
@@ -119,25 +120,12 @@ function Signup() {
       setHint(newHint);
     }
 
-  }, [email, hint, password, pushErrorMsg, username, validation])
-
-  function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = function () {
-        resolve(reader.result);
-      };
-      reader.onerror = function () {
-        reject(reader.error);
-      };
-    });
-  }
+  }, [email, hint, password, pushErrorMsg, username, validation]);
 
   async function handlerFileChange(e) {
     if (e.target.files[0]) {
       setFile(e.target.files[0]);
-      const url = await fileToBase64(e.target.files[0]);
+      const url = await imgToBase64(e.target.files[0]);
       setFileUrl(url);
     }
   }
@@ -155,7 +143,6 @@ function Signup() {
       setIsLoading(false);
       if (res && res.status) {
         const { user } = res;
-        console.log(user);
         await dispatch({ type: "setUserEmail", payload: user.email });
         await dispatch({ type: "setUserName", payload: user.displayName });
         await dispatch({ type: "setUserPhotoURL", payload: user.photoURL });

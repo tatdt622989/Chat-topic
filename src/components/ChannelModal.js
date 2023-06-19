@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
+import imgToBase64 from "../utils/imgToBase64";
 import GlobalContext from "../GlobalContext";
 import { CSSTransition } from 'react-transition-group';
 import '../scss/ChannelModal.scss';
-import { CRUDRequest, auth } from "../Firebase";
+import { handleCRUDReq, auth, createChannel, fileUploader } from "../Firebase";
 
 function MemberList({ members, setTempMembers }) {
     // 全域資料及方法
@@ -43,6 +44,8 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
     const [isLoading, setIsLoading] = useState(false);
     const [tempMembers, setTempMembers] = useState([]);
     const [memberEmail, setMemberEmail] = useState("");
+    const [file, setFile] = useState(null);
+    const [fileUrl, setFileUrl] = useState("");
 
     const pushErrorMsg = useCallback((msg) => {
         console.log("Entering pushErrorMsg"); // 在函式開頭新增這行
@@ -71,26 +74,24 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
     }, [dispatch]);
 
     const handleSave = async () => {
-        console.log("handleSave");
         if (isLoading) return;
         if (!channelTitle.trim()) {
             pushErrorMsg("請輸入頻道名稱");
             return;
         }
+        let usedChannelId = channelId;
         setIsLoading(true);
         if (modalType === "create") {
             const data = {
-                info: {
-                    title: channelTitle,
-                    description: channelDescription,
-                    privacy: channelPrivacy ? 'public' : 'private',
-                    owner: auth.currentUser.uid,
-                },
-                members: {},
-                messages: {},
+                title: channelTitle,
+                description: channelDescription,
+                privacy: channelPrivacy ? 'public' : 'private',
+                owner: auth.currentUser.uid,
             };
-            const url = `/channels/${Date.now()}/`;
-            const res = await CRUDRequest("push", url, data);
+            const res = await createChannel(data).then((res) => res).catch((err) => err);
+            if (res.data && res.data.channelId) {
+                usedChannelId = res.data.channelId;
+            }
             if (res) {
                 setIsOpen(false);
             } else {
@@ -105,20 +106,32 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
                     lastActivity: item.lastActivity,
                 };
             });
-            const data = {
-                info: {
-                    title: channelTitle,
-                    description: channelDescription,
-                    privacy: channelPrivacy,
-                    owner: state.userId,
-                },
-                members: tempMembersObj,
-            };
-            const url = `/channels/${channelId}/`;
-            const res = await CRUDRequest("update", url, data);
+
+            const updates = {};
+            updates[`/channels/${usedChannelId}/info/title`] = channelTitle;
+            updates[`/channels/${usedChannelId}/info/description`] = channelDescription;
+            updates[`/channels/${usedChannelId}/info/privacy`] = channelPrivacy;
+            updates[`/channels/${usedChannelId}/members`] = tempMembersObj;
+
+            if (!usedChannelId) return pushErrorMsg("發生錯誤");
+            const url = `/channels/${usedChannelId}/`;
+            const res = await handleCRUDReq("updateMultiPath", url, updates);
             if (res) {
                 setIsOpen(false);
             } else {
+                pushErrorMsg("更新失敗");
+            }
+        }
+        if (file) {
+            console.log(`channels/${usedChannelId}`);
+            const fileUrl = await fileUploader(`channels/${usedChannelId}/${file.name}`, file);
+            if (!fileUrl.url) {
+                pushErrorMsg("上傳失敗");
+                return;
+            }
+            setFileUrl(fileUrl.url);
+            const res = await handleCRUDReq("update", `/channels/${usedChannelId}/info`, { photoURL: fileUrl.url });
+            if (!res) {
                 pushErrorMsg("更新失敗");
             }
         }
@@ -132,7 +145,7 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
         if (!isConfirm) return;
         setIsLoading(true);
         const url = `/channels/${channelId}/`;
-        const res = await CRUDRequest("delete", url);
+        const res = await handleCRUDReq("delete", url);
         if (res) {
             setIsOpen(false);
         } else {
@@ -146,7 +159,7 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
         if (!memberEmail.trim()) return;
         setIsLoading(true);
         try {
-            const res = await CRUDRequest("get", `/users/`);
+            const res = await handleCRUDReq("get", `/users/`);
             if (res) {
                 console.log(res);
                 let user = null;
@@ -187,11 +200,25 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
         setIsLoading(false);
     };
 
+    const handlerFileChange = async (e) => {
+        if (e.target.files[0]) {
+            setFile(e.target.files[0]);
+            const url = await imgToBase64(e.target.files[0]);
+            setFileUrl(url);
+        }
+    };
+
     useEffect(() => {
         if (channelInfo) {
             setChannelTitle(channelInfo.title);
             setChannelDescription(channelInfo.description);
             setChannelPrivacy(channelInfo.privacy);
+            setFileUrl(channelInfo.photoURL);
+        } else {
+            setChannelTitle("");
+            setChannelDescription("");
+            setChannelPrivacy(false);
+            setFileUrl("");
         }
     }, [channelInfo]);
 
@@ -200,6 +227,7 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
             setChannelTitle("");
             setChannelDescription("");
             setChannelPrivacy(false);
+            setFileUrl("");
         }
         if (isOpen && modalType === "edit") {
             setChannelTitle(channelInfo.title);
@@ -248,6 +276,32 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
                                     <label htmlFor="privacySwitch" className="form-label switch"></label>
                                 </div>
                                 <div className="mb-3">
+                                    <label className="form-label">頻道圖片</label>
+                                    <div className="fileStyle-1">
+                                        <label>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handlerFileChange}
+                                            />
+                                            <div className="imgBox">
+                                                {fileUrl ? (
+                                                    <img src={fileUrl} alt="account" />
+                                                ) : (
+                                                    <span className="material-icons">account_circle</span>
+                                                )}
+                                                <div className="iconBox">
+                                                    {fileUrl ? (
+                                                        <span className="material-icons">edit</span>
+                                                    ) : (
+                                                        <span className="material-icons">add_a_photo</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div className="mb-3">
                                     <label className="form-label">頻道名稱</label>
                                     <input
                                         type="text"
@@ -267,23 +321,25 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
                                         onChange={(e) => setChannelDescription(e.target.value)}
                                     />
                                 </div>
-                                <div className="mb-3">
-                                    <label className="form-label">頻道成員</label>
-                                    <div className="form-control addBar">
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            placeholder="請輸入email新增頻道成員"
-                                            value={memberEmail}
-                                            onChange={(e) => setMemberEmail(e.target.value)}
-                                        />
-                                        <button type="button" className="btn btn-primary" onClick={() => {
-                                            handleMemberSearch();
-                                            setMemberEmail("");
-                                        }}>新增</button>
+                                {modalType === 'edit' &&
+                                    <div className="mb-3">
+                                        <label className="form-label">頻道成員</label>
+                                        <div className="form-control addBar">
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="請輸入email新增頻道成員"
+                                                value={memberEmail}
+                                                onChange={(e) => setMemberEmail(e.target.value)}
+                                            />
+                                            <button type="button" className="btn btn-primary" onClick={() => {
+                                                handleMemberSearch();
+                                                setMemberEmail("");
+                                            }}>新增</button>
+                                        </div>
+                                        <MemberList members={tempMembers} setTempMembers={setTempMembers} />
                                     </div>
-                                    {modalType === 'edit' && <MemberList members={tempMembers} setTempMembers={setTempMembers} />}
-                                </div>
+                                }
                             </form>
                         </div>
                         <div className="modal-footer">

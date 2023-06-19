@@ -22,6 +22,7 @@
         }
         .menu {
             margin-right: 20px;
+            padding: 0;
         }
     }
     input {
@@ -53,6 +54,7 @@
         width: 44px;
         height: 44px;
         border-radius: 99px;
+        padding: 0;
         &:hover {
             span {
                 color: lighten($secColor, 10%);

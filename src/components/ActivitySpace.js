@@ -1,7 +1,7 @@
 import React, { useEffect, useContext, useState, useMemo, useRef } from "react";
 import GlobalContext from "../GlobalContext";
 import classNames from "classnames";
-import { query, ref, onValue, db, limitToLast, CRUDRequest } from "../Firebase";
+import { query, ref, onValue, db, limitToLast, handleCRUDReq } from "../Firebase";
 import dateTransform from "../utils/dateTransform";
 import "../scss/ActivitySpace.scss";
 
@@ -245,7 +245,7 @@ function ActivitySpace(props) {
       uid: state.userId,
     };
     const url = `channels/${props.channelId}/messages`;
-    await CRUDRequest("push", url, data);
+    await handleCRUDReq("push", url, data);
     contentBoxEl.current.scrollTop = contentBoxEl.current.scrollHeight;
     setInputMsg("");
   }
