@@ -155,7 +155,7 @@ function Login() {
     async function fetch () {
       setIsGlobalLoading(true);
       const res = await checkLoginStatus();
-      console.log(res)
+      console.log('fetch', res)
       if (res && res.status) {
         const { user } = res;
         console.log(user);

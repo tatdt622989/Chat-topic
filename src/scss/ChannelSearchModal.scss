@@ -9,4 +9,30 @@
     background-color: rgba($mainColor, 0.5);
     backdrop-filter: blur(5px);
     display: block;
+
+    .form-group {
+        display: flex;
+        align-items: flex-start;
+        .searchBtn {
+            width: 60px;
+            height: 44px;
+            @include center;
+            background-color: $mainColor;
+            border-radius: 12px;
+            margin-left: 10px;
+            &:hover {
+                background-color: darken($mainColor, 10%);
+            }
+            span {
+                color: $secColor;
+            }
+        }
+    }
+
+    .searchItem {
+        display: flex;
+        .info {
+            flex-grow: 1;
+        }
+    }
 }

@@ -1,36 +1,51 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import GlobalContext from "../GlobalContext";
 import { CSSTransition } from 'react-transition-group';
-import { handleCRUDReq } from "../Firebase";
+import { searchPublicChannel } from "../Firebase";
 import '../scss/ChannelSearchModal.scss';
 
 function SearchResults({ keyword }) {
     const [results, setResults] = useState([]);
 
     async function getResults() {
-        // const res = await handleCRUDReq('get', '');
-        // setResults(res);
+        if (!keyword) return;
+        const res = await searchPublicChannel({ keyword }).then((res) => res).catch((err) => { console.log(err); });
+        setResults(res.data);
     }
 
     useEffect(() => {
-        // fetch data
+        getResults();
     }, [keyword]);
 
-    return (
-        <div className="search-results">
-            <div className="search-result">
-                <div className="search-result__avatar"></div>
-                <div className="search-result__info">
-                    <div className="search-result__name">Channel name</div>
-                    <div className="search-result__description">Channel description</div>
-                </div>
+    const resultList = results.map((result) => {
+        return (
+            <div className="searchItem" key={result.id}>
+                <div className="imgBox"></div>
+                <div className="info">{result.info.title}</div>
+                <button className="enterBtn">
+                    <span className="material-icons">arrow_forward</span>
+                </button>
             </div>
+        );
+    });
+
+    return (
+        <div className="searchResults">
+            {resultList}
         </div>
     );
 }
 
 function ChannelSearchModal({ isOpen, setIsOpen }) {
     const nodeRef = React.useRef(null);
+    const [inputKeyword, setInputKeyword] = useState('');
+    const [keyword, setKeyword] = useState('');
+
+    function handleSearch() {
+        setKeyword(inputKeyword);
+        setInputKeyword('');
+    }
+
     return (
         <CSSTransition
             in={isOpen}
@@ -47,10 +62,21 @@ function ChannelSearchModal({ isOpen, setIsOpen }) {
                         <button type="button" className="btn-close" aria-label="Close" onClick={() => setIsOpen(false)}></button>
                     </div>
                     <div className="modal-body">
-                        <form action="" className="form">
+                        <form action="" className="form" onSubmit={(e) => e.preventDefault()}>
                             <div className="form-group">
-                                <input type="text" className="form-control" id="channelName" placeholder="Enter channel name" />
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    id="channelName"
+                                    placeholder="Enter channel name"
+                                    value={inputKeyword}
+                                    onChange={(e) => setInputKeyword(e.target.value)}
+                                />
+                                <button className="searchBtn" onClick={() => handleSearch()}>
+                                    <span className="material-icons">search</span>
+                                </button>
                             </div>
+                            <SearchResults keyword={keyword} />
                         </form>
                     </div>
                 </div>

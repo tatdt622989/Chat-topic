@@ -61,6 +61,7 @@ const auth = getAuth();
 // firebase functions
 const getUserChannels = httpsCallable(functions, 'getUserChannels');
 const createChannel = httpsCallable(functions, 'createChannel');
+const searchPublicChannel = httpsCallable(functions, 'searchPublicChannel');
 
 async function fileUploader(path, file) {
   if (!path || !file) {
@@ -262,7 +263,12 @@ async function login(type, email, password) {
 async function checkLoginStatus() {
   const redirectRes = await getRedirectResult(auth)
     .then((result) => {
-      console.log("check user");
+      console.log("check user", result);
+      if (result === null) {
+        return {
+          status: false,
+        }; 
+      }
       // This gives you a Google Access Token. You can use it to access Google APIs.
       const credential = GoogleAuthProvider.credentialFromResult(result);
       const token = credential.accessToken;
@@ -281,10 +287,6 @@ async function checkLoginStatus() {
       console.log(error);
       const errorCode = error.code;
       const errorMessage = error.message;
-      // The email of the user's account used.
-      const email = error.email;
-      // The AuthCredential type that was used.
-      const credential = GoogleAuthProvider.credentialFromError(error);
       let type = "";
       if (errorCode) {
         if (errorCode.search("email") > -1) {
@@ -408,6 +410,7 @@ export {
   handleCRUDReq,
   createChannel,
   getUserChannels,
+  searchPublicChannel,
   auth,
   db,
   ref,
