@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import classNames from "classnames";
 import GlobalContext from "../GlobalContext";
 import { useLocation, useNavigate } from "react-router-dom";
-import { login, checkLoginStatus } from "../Firebase";
+import { login, checkLoginStatus, handleCRUDReq } from "../Firebase";
 import { ReactComponent as GoogleLogo } from "../images/google-icon.svg";
 import Toast from "../components/Toast";
 import Loading from "../components/Loading";
@@ -132,14 +132,6 @@ function Login() {
         res = await login(type, email, password);
         ruleChecker(res);
         setIsLoading(false);
-        if (res && res.status) {
-          const { user } = res;
-          console.log(user);
-          await dispatch({ type: "setUserEmail", payload: user.email });
-          await dispatch({ type: "setUserName", payload: user.displayName });
-          await dispatch({ type: "setUserPhotoURL", payload: user.photoURL });
-          await dispatch({ type: "setUserId", payload: user.uid });
-        }
       }
     }
   
@@ -158,11 +150,13 @@ function Login() {
       console.log('fetch', res)
       if (res && res.status) {
         const { user } = res;
-        console.log(user);
+        // get db data
+        const dbUser = await handleCRUDReq("get", "users/" + user.uid + '/publicInfo');
         await dispatch({ type: "setUserEmail", payload: user.email });
         await dispatch({ type: "setUserName", payload: user.displayName });
         await dispatch({ type: "setUserPhotoURL", payload: user.photoURL });
         await dispatch({ type: "setUserId", payload: user.uid });
+        await dispatch({ type: "setUserDescription", payload: dbUser.description });
         navigate(location.state?.from.pathname??'/channel/public');
       } else {
         setIsGlobalLoading(false);

@@ -48,7 +48,6 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
     const [fileUrl, setFileUrl] = useState("");
 
     const pushErrorMsg = useCallback((msg) => {
-        console.log("Entering pushErrorMsg"); // 在函式開頭新增這行
         const id = Date.now();
         dispatch({
             type: "setToastList",
@@ -70,7 +69,6 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
                 },
             });
         }, 3000);
-        console.log("Exiting pushErrorMsg"); // 在函式結尾新增這行
     }, [dispatch]);
 
     const handleSave = async () => {

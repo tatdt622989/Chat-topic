@@ -150,7 +150,6 @@ async function updateDbUserData(method, user) {
           console.error(error);
           return false;
         });
-      console.log(checkDataIsExist);
       if (!checkDataIsExist) {
         await set(child(dbRef, "publicInfo"), {
           name: user.displayName,
@@ -161,7 +160,11 @@ async function updateDbUserData(method, user) {
       }
       break;
     case "edit":
-      break;
+      const updates = {};
+      updates[`users/${user.uid}/publicInfo/name`] = user.name;
+      updates[`users/${user.uid}/publicInfo/photoURL`] = user.photoURL;
+      updates[`users/${user.uid}/publicInfo/description`] = user.description;
+      return await update(ref(db), updates);
     default:
   }
 }
@@ -171,17 +174,19 @@ async function createUser(email, password, name, file) {
     .then(async (userCredential) => {
       // Signed in
       const { user } = userCredential;
-      const res = await fileUploader(`head_shot/${user.uid}/${file.name}`, file);
-      if (res && res.url) {
-        await updateUserData(name, res.url);
-        await updateDbUserData("create", user);
-        const ts = Date.now();
-        console.log('uid', auth.currentUser.uid)
-        await set(ref(db, `channels/public/members/${auth.currentUser.uid}`), {
-          joinTimestamp: ts,
-          lastActivity: ts,
-        });
+      let res = null;
+      if (file.name) {
+        res = await fileUploader(`head_shot/${user.uid}/${file.name}`, file);
       }
+
+      await updateUserData(name, res.url);
+      await updateDbUserData("create", user);
+      const ts = Date.now();
+      console.log('uid', auth.currentUser.uid)
+      await set(ref(db, `channels/public/members/${auth.currentUser.uid}`), {
+        joinTimestamp: ts,
+        lastActivity: ts,
+      });
 
       if (!res || !res.status) {
         return res;

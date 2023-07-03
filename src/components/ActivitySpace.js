@@ -4,22 +4,35 @@ import classNames from "classnames";
 import { query, ref, onValue, db, limitToLast, handleCRUDReq } from "../Firebase";
 import dateTransform from "../utils/dateTransform";
 import "../scss/ActivitySpace.scss";
+import { set } from "firebase/database";
 
-function ActivitySpaceToolbar(props) {
+function ActivitySpaceToolbar({ toggleMenu, info, setIsOpen, setChatSearchKeyword }) {
+  const [keyword, setKeyword] = useState("");
+
   return (
     <div className="toolbarArea">
       <div className="left">
         <button
           className="btn menu"
           onClick={() => {
-            props.toggleMenu();
+            toggleMenu();
           }}
         >
           <span className="material-icons">sync_alt</span>
         </button>
-        <h2>{props.info?.title}</h2>
+        <h2>{info?.title}</h2>
       </div>
-      <input type="search" placeholder="搜尋聊天室內容" />
+      <input
+        type="search" 
+        placeholder="搜尋聊天室內容" 
+        value={keyword} 
+        onChange={(e) => setKeyword(e.target.value)} 
+        onKeyPress={(e) => {
+          if (e.key === "Enter") {
+            setChatSearchKeyword(keyword);
+          }
+        }}
+      />
       <ul>
         <li className="search">
           <button className="btn">
@@ -37,7 +50,7 @@ function ActivitySpaceToolbar(props) {
           </button>
         </li> */}
         <li className="personal">
-          <button className="btn">
+          <button className="btn" onClick={(e) => setIsOpen(true)}>
             <span className="material-icons">person</span>
           </button>
         </li>
@@ -51,18 +64,18 @@ function ActivitySpaceToolbar(props) {
   );
 }
 
-function MsgList(props) {
-  const members = props.members ?? [];
+function MsgList({ msgData, members, toggleMenu }) {
+  const membersData = members ?? [];
 
   function getUserInfo(uid) {
-    let userInfo = members.filter((obj) => obj.uid === uid);
+    let userInfo = membersData.filter((obj) => obj.uid === uid);
     if (userInfo.length === 0) {
       return (userInfo = {});
     }
     return userInfo[0];
   }
 
-  const listItems = props.msgData.map((item, i) => {
+  const listItems = msgData.map((item, i) => {
     const userInfo =
       Array.isArray(item) && item.length > 0 ? getUserInfo(item[0].uid) : {};
     return (
@@ -98,10 +111,10 @@ function MsgList(props) {
     );
   });
 
-  return <ul className="msgList" onClick={() => props.toggleMenu(false)}>{listItems}</ul>;
+  return <ul className="msgList" onClick={() => toggleMenu(false)}>{listItems}</ul>;
 }
 
-function EmojiList(props) {
+function EmojiList({ handleEmojiInput }) {
   const [emojiList, setEmojiList] = useState([
     "😀",
     "😁",
@@ -219,19 +232,22 @@ function EmojiList(props) {
     "😾",
   ]);
   const emojiElList = emojiList.map((el) => (
-    <li onClick={props.handleEmojiInput} className="item" key={el}>
+    <li onClick={handleEmojiInput} className="item" key={el}>
       {el}
     </li>
   ));
   return <ul className="emojiList scrollbar">{emojiElList}</ul>;
 }
 
-function ActivitySpace(props) {
+function ActivitySpace({ channelId, setIsOpen, members, toggleMenu, info }) {
   const { state, dispatch } = useContext(GlobalContext);
   const [inputMsg, setInputMsg] = useState("");
   const [msgData, setMsgData] = useState([]);
+  const [searchResult, setSearchResult] = useState([]);
+  const [displayMsgData, setDisplayMsgData] = useState([]);
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
   const contentBoxEl = useRef(null);
+  const [chatSearchKeyword, setChatSearchKeyword] = useState("");
   const [inputIndex, setInputIndex] = useState({
     start: 0,
     end: 0,
@@ -244,23 +260,70 @@ function ActivitySpace(props) {
       content: inputMsg,
       uid: state.userId,
     };
-    const url = `channels/${props.channelId}/messages`;
+    const url = `channels/${channelId}/messages`;
     await handleCRUDReq("push", url, data);
     contentBoxEl.current.scrollTop = contentBoxEl.current.scrollHeight;
     setInputMsg("");
   }
 
+  function handleEmojiClose() {
+    setIsEmojiOpen(false);
+  }
+
+  function handleEmojiInput(e) {
+    const text = e.target.innerText;
+    setInputMsg(
+      inputMsg.slice(0, inputIndex.start) +
+      text +
+      inputMsg.slice(inputIndex.end)
+    );
+    setInputIndex({
+      start: inputIndex.start + text.length,
+      end: inputIndex.start + text.length,
+    });
+  }
+
+  function getInputSelection(e) {
+    setInputIndex({
+      start: e.target.selectionStart,
+      end: e.target.selectionEnd,
+    });
+  }
+
+  useEffect(() => {
+    const data = msgData.filter((obj) => {
+      if (Array.isArray(obj)) {
+        return obj.some((item) => item.content.includes(chatSearchKeyword));
+      }
+      return obj.content.includes(chatSearchKeyword);
+    });
+    setSearchResult(data);
+  }, [chatSearchKeyword]);
+
+  useEffect(() => {
+    if (searchResult.length === 0) {
+      setDisplayMsgData(msgData);
+    } else {
+      setDisplayMsgData(searchResult);
+    }
+  }, [searchResult, msgData]);
+
+  useEffect(() => {
+    document.addEventListener("click", handleEmojiClose);
+    return () => document.removeEventListener("click", handleEmojiClose);
+  }, [isEmojiOpen]);
+
   useEffect(() => {
     const msgRef = query(
-      ref(db, `channels/${props.channelId}/messages`),
+      ref(db, `channels/${channelId}/messages`),
       limitToLast(100)
     );
-    console.log("mounted", "ActivitySpace");
     const msgOff = onValue(msgRef, async (snapshot) => {
       let data = snapshot.val() ?? {};
       data = Object.values(data);
       const newData = [];
       let tempAry = [];
+      console.log(data);
       data.forEach((obj, i) => {
         const tempStr =
           i > 0 ? dateTransform("y-m-d", tempAry[0].timestamp) : "";
@@ -277,53 +340,30 @@ function ActivitySpace(props) {
       });
       setMsgData(newData);
       contentBoxEl.current.scrollTop = contentBoxEl.current.scrollHeight;
-    });
+    }, (err) => console.log(err));
 
     return () => {
       if (msgOff) {
         msgOff();
       }
     };
-  }, [props.channelId]);
-
-  function handleEmojiClose() {
-    setIsEmojiOpen(false);
-  }
-
-  useEffect(() => {
-    document.addEventListener("click", handleEmojiClose);
-    return () => document.removeEventListener("click", handleEmojiClose);
-  }, [isEmojiOpen]);
-
-  function handleEmojiInput(e) {
-    const text = e.target.innerText;
-    setInputMsg(
-      inputMsg.slice(0, inputIndex.start) +
-        text +
-        inputMsg.slice(inputIndex.end)
-    );
-    setInputIndex({
-      start: inputIndex.start + text.length,
-      end: inputIndex.start + text.length,
-    });
-  }
-
-  function getInputSelection(e) {
-    setInputIndex({
-      start: e.target.selectionStart,
-      end: e.target.selectionEnd,
-    });
-  }
+  }, [channelId]);
 
   return (
     <div className="activitySpaceArea">
-      <ActivitySpaceToolbar members={props.members} info={props.info} toggleMenu={props.toggleMenu} />
+      <ActivitySpaceToolbar 
+        members={members} 
+        info={info} 
+        toggleMenu={toggleMenu} 
+        setIsOpen={setIsOpen} 
+        setChatSearchKeyword={setChatSearchKeyword}
+      />
       <div className="contentBox scrollbar" ref={contentBoxEl}>
         {useMemo(
           () => (
-            <MsgList msgData={msgData} members={props.members} toggleMenu={props.toggleMenu} />
+            <MsgList msgData={displayMsgData} members={members} toggleMenu={toggleMenu} />
           ),
-          [props.members, msgData]
+          [members, displayMsgData, toggleMenu]
         )}
       </div>
       <div className="inputArea">

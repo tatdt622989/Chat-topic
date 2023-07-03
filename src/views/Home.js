@@ -8,6 +8,7 @@ import { handleCRUDReq, getChannelInfo, ref, onValue, db, get } from "../Firebas
 import GlobalContext from "../GlobalContext";
 import { useParams, useNavigate } from "react-router-dom";
 import Toast from "../components/Toast";
+import ChannelUserInfoModal from "../components/ChannelUserInfoModal";
 
 function Home() {
   const { state, dispatch } = useContext(GlobalContext);
@@ -19,6 +20,7 @@ function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(0);
   const [isChannelModalOpen, setIsChannelModalOpen] = useState(false);
   const [isChannelSearchModalOpen, setIsChannelSearchModalOpen] = useState(false);
+  const [isChannelUserInfoModalOpen, setIsChannelUserInfoModalOpen] = useState(false);
   const [channelModalType, setChannelModalType] = useState("create");
 
   let navigate = useNavigate();
@@ -110,6 +112,7 @@ function Home() {
           info={channelInfo}
           isMenuOpen={isMenuOpen}
           toggleMenu={toggleMenu}
+          setIsOpen={setIsChannelUserInfoModalOpen}
         />
         <ChannelModal 
           isOpen={isChannelModalOpen}
@@ -122,6 +125,10 @@ function Home() {
         <ChannelSearchModal 
           isOpen={isChannelSearchModalOpen}
           setIsOpen={setIsChannelSearchModalOpen}
+        />
+        <ChannelUserInfoModal 
+          isOpen={isChannelUserInfoModalOpen}
+          setIsOpen={setIsChannelUserInfoModalOpen}
         />
       </div>
       <Toast />
