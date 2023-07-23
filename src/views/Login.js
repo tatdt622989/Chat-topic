@@ -147,7 +147,6 @@ function Login() {
     async function fetch () {
       setIsGlobalLoading(true);
       const res = await checkLoginStatus();
-      console.log('fetch', res)
       if (res && res.status) {
         const { user } = res;
         // get db data

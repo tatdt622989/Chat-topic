@@ -14,9 +14,7 @@ import {
 function RequireAuth({children}) {
   const { state, dispatch } = useContext(GlobalContext);
   const location = useLocation();
-  const isLogin = auth.currentUser
-
-  console.log(location)
+  const isLogin = auth.currentUser;
 
   if (!isLogin) {
     return <Navigate to="/" state={{ from: location }} replace />;

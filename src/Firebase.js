@@ -50,7 +50,7 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const functions = getFunctions(app, 'asia-northeast3');
+const functions = getFunctions(app, 'asia-east1');
 const analytics = getAnalytics(app);
 const db = getDatabase(app);
 const storage = getStorage(app);
@@ -62,6 +62,7 @@ const auth = getAuth();
 const getUserChannels = httpsCallable(functions, 'getUserChannels');
 const createChannel = httpsCallable(functions, 'createChannel');
 const searchPublicChannel = httpsCallable(functions, 'searchPublicChannel');
+const deleteChannel = httpsCallable(functions, 'deleteChannel');
 
 async function fileUploader(path, file) {
   if (!path || !file) {
@@ -118,7 +119,6 @@ async function fileUploader(path, file) {
 
 // 更新auth中的使用者資料
 function updateUserData(name, url) {
-  console.log("update user");
   const user = auth.currentUser;
   return updateProfile(user, {
     displayName: name,
@@ -137,13 +137,11 @@ function updateUserData(name, url) {
 
 // 更新db中的使用者資料
 async function updateDbUserData(method, user) {
-  console.log("updateDbUserData", method, user);
   const dbRef = ref(db, `users/${user.uid}`);
   switch (method) {
     case "create":
       const checkDataIsExist = await get(dbRef)
         .then((snapshot) => {
-          console.log(snapshot.exists());
           return snapshot.exists();
         })
         .catch((error) => {
@@ -182,7 +180,6 @@ async function createUser(email, password, name, file) {
       await updateUserData(name, res.url);
       await updateDbUserData("create", user);
       const ts = Date.now();
-      console.log('uid', auth.currentUser.uid)
       await set(ref(db, `channels/public/members/${auth.currentUser.uid}`), {
         joinTimestamp: ts,
         lastActivity: ts,
@@ -268,7 +265,6 @@ async function login(type, email, password) {
 async function checkLoginStatus() {
   const redirectRes = await getRedirectResult(auth)
     .then((result) => {
-      console.log("check user", result);
       if (result === null) {
         return {
           status: false,
@@ -280,7 +276,6 @@ async function checkLoginStatus() {
 
       // The signed-in user info.
       const user = result.user;
-      console.log("redirect", user);
 
       return {
         status: true,
@@ -310,7 +305,6 @@ async function checkLoginStatus() {
     const loginStatus = await new Promise((resolve, reject) => {
       unsubscribe = onAuthStateChanged(auth, (user) => {
         if (user) {
-          console.log("loginStatus", user);
           // User is signed in, see docs for a list of available properties
           // https://firebase.google.com/docs/reference/js/firebase.User
           resolve({
@@ -331,7 +325,6 @@ async function checkLoginStatus() {
   }
   await updateDbUserData("create", redirectRes.user);
   const ts = Date.now();
-  console.log('uid', auth.currentUser.uid)
   await set(ref(db, `channels/public/members/${auth.currentUser.uid}`), {
     joinTimestamp: ts,
     lastActivity: ts,
@@ -414,6 +407,7 @@ export {
   onAuthStateChanged,
   handleCRUDReq,
   createChannel,
+  deleteChannel,
   getUserChannels,
   searchPublicChannel,
   auth,

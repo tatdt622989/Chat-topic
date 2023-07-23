@@ -46,9 +46,9 @@ function Toast() {
   // 全域資料及方法
   const { state, dispatch } = useContext(GlobalContext);
 
-  useEffect(() => {
-    console.log(JSON.stringify(state.toastList), 'toast list');
-  }, [state.toastList]);
+  // useEffect(() => {
+  //   console.log(JSON.stringify(state.toastList), 'toast list');
+  // }, [state.toastList]);
 
   return (
     <ToastRender />

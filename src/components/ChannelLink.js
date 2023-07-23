@@ -4,19 +4,18 @@ import '../scss/ChannelType.scss';
 import React, { useEffect, useContext, useState, useMemo, useRef } from "react";
 import classNames from "classnames";
 import GlobalContext from "../GlobalContext";
-import { handleCRUDReq, getUserChannels } from "../Firebase";
 
-function PersonalChannelLink() {
+function PersonalChannelLink({ toggleMenu, personalChannel }) {
     // 全域資料及方法
     const { state, dispatch } = useContext(GlobalContext);
     const [channels, setChannels] = useState([]);
-    async function getPersonalChannel() {
-        const res = await getUserChannels({ text: '' }).then((res) => res).catch((err) => err);
-        if (res.data) {
-            const channelsEl = res.data.map((channel) => {
+
+    useEffect(() => {
+        if (personalChannel && personalChannel.length > 0) {
+            const channelsEl = personalChannel.map((channel) => {
                 return (
                     <li key={channel.id}>
-                        <Link to={`/channel/${channel.id}`} className="btn">
+                        <Link to={`/channel/${channel.id}`} className="btn" onClick={() => toggleMenu(false)}>
                             <div className="imgBox">
                                 {
                                     channel.info.photoURL ? <img src={channel.info.photoURL} alt={channel.info.title}/> :
@@ -30,11 +29,10 @@ function PersonalChannelLink() {
             });
             setChannels(channelsEl);
         }
-    }
-
-    useEffect(() => {
-        getPersonalChannel();
-    }, []);
+        return () => {
+            setChannels([]);
+        };
+    }, [personalChannel, toggleMenu]);
 
     return (
         <ul className="channelList">
@@ -43,7 +41,8 @@ function PersonalChannelLink() {
     );
 }
 
-function ChannelLink({ setIsChannelModalOpen, isMenuOpen, setChannelModalType, setIsChannelSearchModalOpen }) {
+function ChannelLink({ setIsChannelModalOpen, isMenuOpen, setChannelModalType, 
+    setIsChannelSearchModalOpen, toggleMenu, personalChannel }) {
     const [sideMenuHeight, setSideMenuHeight] = useState(0);
 
     let resizeWindow = () => {
@@ -63,12 +62,12 @@ function ChannelLink({ setIsChannelModalOpen, isMenuOpen, setChannelModalType, s
     return (
         <div className={classNames('channelTypeArea', isMenuOpen ? 'open' : '')} style={{ 'height': sideMenuHeight > 0 ? sideMenuHeight - 73 + 'px' : '' }}>
             <ul className="infoList">
-                <li>
+                {/* <li>
                     <button className="btn home">
                         <span className="material-icons">home</span>
                         <p className="title">個人首頁</p>
                     </button>
-                </li>
+                </li> */}
                 <li>
                     <button className="btn" onClick={() => {
                         setChannelModalType('create');
@@ -87,7 +86,7 @@ function ChannelLink({ setIsChannelModalOpen, isMenuOpen, setChannelModalType, s
                     </button>
                 </li>
             </ul>
-            <PersonalChannelLink />
+            <PersonalChannelLink toggleMenu={toggleMenu} personalChannel={personalChannel} />
         </div>
     )
 }

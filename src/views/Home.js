@@ -3,8 +3,8 @@ import ChannelLink from "../components/ChannelLink";
 import ChannelInfo from "../components/ChannelInfo";
 import ChannelModal from "../components/ChannelModal";
 import ChannelSearchModal from "../components/ChannelSearchModal";
-import React, { useEffect, useContext, useState } from "react";
-import { handleCRUDReq, getChannelInfo, ref, onValue, db, get } from "../Firebase";
+import React, { useEffect, useContext, useState, useCallback } from "react";
+import { handleCRUDReq, getChannelInfo, ref, onValue, db, get, getUserChannels } from "../Firebase";
 import GlobalContext from "../GlobalContext";
 import { useParams, useNavigate } from "react-router-dom";
 import Toast from "../components/Toast";
@@ -22,14 +22,22 @@ function Home() {
   const [isChannelSearchModalOpen, setIsChannelSearchModalOpen] = useState(false);
   const [isChannelUserInfoModalOpen, setIsChannelUserInfoModalOpen] = useState(false);
   const [channelModalType, setChannelModalType] = useState("create");
+  const [personalChannel, setPersonalChannel] = useState([]);
 
   let navigate = useNavigate();
 
-  function toggleMenu(isOpen) {
+  const toggleMenu = useCallback((isOpen) => {
     if (typeof isOpen !== 'boolean') {
       setIsMenuOpen(!isMenuOpen);
     } else {
       setIsMenuOpen(isOpen);
+    }
+  }, [isMenuOpen]);
+
+  async function getPersonalChannel() {
+    const res = await getUserChannels({ text: '' }).then((res) => res).catch((err) => err);
+    if (res.data) {
+      setPersonalChannel(res.data);
     }
   }
 
@@ -74,7 +82,6 @@ function Home() {
       });
 
       await Promise.all(requests).then((values) => {
-        console.log("members:", values);
         const newVal = values.map((obj, i) => {
           return { ...obj, uid: userUids[i], ...userChannelData[i] };
         });
@@ -83,12 +90,15 @@ function Home() {
     });
 
     return () => {
-      console.log("unmount");
       if (memberOff) {
         memberOff();
       }
     };
   }, [chatType, state.userId, channelId, isChannelModalOpen, navigate]);
+
+  useEffect(() => {
+    getPersonalChannel();
+  }, []);
 
   return (
     <div className="view home">
@@ -96,7 +106,10 @@ function Home() {
         isMenuOpen={isMenuOpen}
         setIsChannelModalOpen={setIsChannelModalOpen}
         setChannelModalType={setChannelModalType}
-        setIsChannelSearchModalOpen={setIsChannelSearchModalOpen} 
+        setIsChannelSearchModalOpen={setIsChannelSearchModalOpen}
+        toggleMenu={toggleMenu}
+        personalChannel={personalChannel}
+        setPersonalChannel={setPersonalChannel}
       />
       <div className="contentArea">
         <ChannelInfo
@@ -113,6 +126,8 @@ function Home() {
           isMenuOpen={isMenuOpen}
           toggleMenu={toggleMenu}
           setIsOpen={setIsChannelUserInfoModalOpen}
+          setIsChannelSearchModalOpen={setIsChannelSearchModalOpen}
+          getPersonalChannel={getPersonalChannel}
         />
         <ChannelModal 
           isOpen={isChannelModalOpen}

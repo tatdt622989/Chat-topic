@@ -6,8 +6,19 @@ import dateTransform from "../utils/dateTransform";
 import "../scss/ActivitySpace.scss";
 import { set } from "firebase/database";
 
-function ActivitySpaceToolbar({ toggleMenu, info, setIsOpen, setChatSearchKeyword }) {
+function ActivitySpaceToolbar({ 
+  toggleMenu, 
+  info, 
+  setIsOpen, 
+  setChatSearchKeyword, 
+  setIsChannelSearchModalOpen ,
+  chatSearchKeyword
+}) {
   const [keyword, setKeyword] = useState("");
+
+  useEffect(() => {
+    setKeyword(chatSearchKeyword);
+  }, [chatSearchKeyword]);
 
   return (
     <div className="toolbarArea">
@@ -35,7 +46,7 @@ function ActivitySpaceToolbar({ toggleMenu, info, setIsOpen, setChatSearchKeywor
       />
       <ul>
         <li className="search">
-          <button className="btn">
+          <button className="btn" onClick={() => setIsChannelSearchModalOpen(true)}>
             <span className="material-icons">search</span>
           </button>
         </li>
@@ -239,7 +250,7 @@ function EmojiList({ handleEmojiInput }) {
   return <ul className="emojiList scrollbar">{emojiElList}</ul>;
 }
 
-function ActivitySpace({ channelId, setIsOpen, members, toggleMenu, info }) {
+function ActivitySpace({ channelId, setIsOpen, members, toggleMenu, info, setIsChannelSearchModalOpen, getPersonalChannel }) {
   const { state, dispatch } = useContext(GlobalContext);
   const [inputMsg, setInputMsg] = useState("");
   const [msgData, setMsgData] = useState([]);
@@ -255,6 +266,7 @@ function ActivitySpace({ channelId, setIsOpen, members, toggleMenu, info }) {
 
   async function pushMsg(e) {
     if (e.key !== "Enter" || e.keyCode !== 13) return;
+    setChatSearchKeyword("");
     const data = {
       timestamp: Date.now(),
       content: inputMsg,
@@ -316,14 +328,13 @@ function ActivitySpace({ channelId, setIsOpen, members, toggleMenu, info }) {
   useEffect(() => {
     const msgRef = query(
       ref(db, `channels/${channelId}/messages`),
-      limitToLast(100)
+      limitToLast(10000)
     );
     const msgOff = onValue(msgRef, async (snapshot) => {
       let data = snapshot.val() ?? {};
       data = Object.values(data);
       const newData = [];
       let tempAry = [];
-      console.log(data);
       data.forEach((obj, i) => {
         const tempStr =
           i > 0 ? dateTransform("y-m-d", tempAry[0].timestamp) : "";
@@ -342,9 +353,12 @@ function ActivitySpace({ channelId, setIsOpen, members, toggleMenu, info }) {
       contentBoxEl.current.scrollTop = contentBoxEl.current.scrollHeight;
     }, (err) => console.log(err));
 
+    getPersonalChannel();
+
     return () => {
       if (msgOff) {
         msgOff();
+        console.log("msgOff", msgOff);
       }
     };
   }, [channelId]);
@@ -355,8 +369,10 @@ function ActivitySpace({ channelId, setIsOpen, members, toggleMenu, info }) {
         members={members} 
         info={info} 
         toggleMenu={toggleMenu} 
+        chatSearchKeyword={chatSearchKeyword}
         setIsOpen={setIsOpen} 
         setChatSearchKeyword={setChatSearchKeyword}
+        setIsChannelSearchModalOpen={setIsChannelSearchModalOpen}
       />
       <div className="contentBox scrollbar" ref={contentBoxEl}>
         {useMemo(

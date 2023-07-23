@@ -104,6 +104,8 @@
         padding: 20px;
         box-sizing: border-box;
         overflow-y: auto;
+        min-height: 0;
+        height: calc(100vh - 157px - env(safe-area-inset-bottom));
         @include media(1024) {
         }
     }
@@ -179,6 +181,7 @@
     padding: 20px;
     box-sizing: border-box;
     position: relative;
+    flex-shrink: 0;
     .inputTool {
         position: absolute;
         right: 26px;

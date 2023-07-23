@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import GlobalContext from "../GlobalContext";
 import { CSSTransition } from 'react-transition-group';
@@ -5,7 +6,7 @@ import { searchPublicChannel } from "../Firebase";
 import { ReactComponent as LoadingIcon } from "../images/loading_s.svg";
 import '../scss/ChannelSearchModal.scss';
 
-function SearchResults({ keyword, setKeyword }) {
+function SearchResults({ keyword, setKeyword, setIsOpen, getPersonalChannel }) {
     const [results, setResults] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const { state, dispatch } = useContext(GlobalContext);
@@ -23,7 +24,6 @@ function SearchResults({ keyword, setKeyword }) {
             },
         });
         setTimeout(() => {
-            console.log("setTimeout");
             dispatch({
                 type: "setToastList",
                 payload: {
@@ -46,8 +46,15 @@ function SearchResults({ keyword, setKeyword }) {
     }
 
     useEffect(() => {
+        if (!keyword) return;
         getResults();
     }, [keyword]);
+
+    useEffect(() => {
+        return () => {
+            setResults([]);
+        };
+    }, []);
 
     const loadingEl = (
         isLoading &&
@@ -60,15 +67,20 @@ function SearchResults({ keyword, setKeyword }) {
     const resultList = results.map((result) => {
         return (
             <div className="searchItem" key={result.id}>
-                {result.info.photoURL && 
-                    <div className="imgBox">
-                        <img src={result.info.photoURL} alt="channel" />
-                    </div>
-                }
-                <div className="info">{result.info.title}</div>
-                <button className="enterBtn">
-                    <span className="material-icons">arrow_forward</span>
-                </button>
+                <Link to={`/channel/${result.id}`} className="link" onClick={() => {
+                    setIsOpen(false);
+                    setKeyword('');
+                }}>
+                    {result.info.photoURL && 
+                        <div className="imgBox">
+                            <img src={result.info.photoURL} alt="channel" />
+                        </div>
+                    }
+                    <div className="info">{result.info.title}</div>
+                    <button className="enterBtn">
+                        <span className="material-icons">arrow_forward</span>
+                    </button>
+                </Link>
             </div>
         );
     });
@@ -100,7 +112,6 @@ function ChannelSearchModal({ isOpen, setIsOpen }) {
             },
         });
         setTimeout(() => {
-            console.log("setTimeout");
             dispatch({
                 type: "setToastList",
                 payload: {
@@ -119,6 +130,17 @@ function ChannelSearchModal({ isOpen, setIsOpen }) {
         setKeyword(inputKeyword);
         setInputKeyword('');
     }
+
+    useEffect(() => {
+        if (isOpen) {
+            setKeyword('');
+            setInputKeyword('');
+        }
+        return () => {
+            setKeyword('');
+            setInputKeyword('');
+        };  
+    }, [isOpen]);
 
     return (
         <CSSTransition
@@ -150,7 +172,11 @@ function ChannelSearchModal({ isOpen, setIsOpen }) {
                                     <span className="material-icons">search</span>
                                 </button>
                             </div>
-                            <SearchResults keyword={keyword} setKeyword={setKeyword} />
+                            <SearchResults 
+                                keyword={keyword} 
+                                setKeyword={setKeyword} 
+                                setIsOpen={setIsOpen}
+                            />
                         </form>
                     </div>
                 </div>

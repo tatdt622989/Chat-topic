@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
+import { useNavigate } from "react-router-dom";
 import imgToBase64 from "../utils/imgToBase64";
 import GlobalContext from "../GlobalContext";
 import { CSSTransition } from 'react-transition-group';
 import '../scss/ChannelModal.scss';
-import { handleCRUDReq, auth, createChannel, fileUploader } from "../Firebase";
+import { handleCRUDReq, auth, createChannel, fileUploader, deleteChannel } from "../Firebase";
 
 function MemberList({ members, setTempMembers }) {
     // 全域資料及方法
@@ -46,6 +47,7 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
     const [memberEmail, setMemberEmail] = useState("");
     const [file, setFile] = useState(null);
     const [fileUrl, setFileUrl] = useState("");
+    const navigate = useNavigate();
 
     const pushErrorMsg = useCallback((msg) => {
         const id = Date.now();
@@ -60,7 +62,6 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
             },
         });
         setTimeout(() => {
-            console.log("setTimeout");
             dispatch({
                 type: "setToastList",
                 payload: {
@@ -121,7 +122,6 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
             }
         }
         if (file) {
-            console.log(`channels/${usedChannelId}`);
             const fileUrl = await fileUploader(`channels/${usedChannelId}/${file.name}`, file);
             if (!fileUrl.url) {
                 pushErrorMsg("上傳失敗");
@@ -133,19 +133,25 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
                 pushErrorMsg("更新失敗");
             }
         }
+        navigate(`/channel/${usedChannelId}`);
         setIsLoading(false);
     };
 
     const handleDelete = async () => {
-        console.log("handleDelete");
         if (isLoading) return;
         const isConfirm = window.confirm('確定要刪除嗎？');
         if (!isConfirm) return;
         setIsLoading(true);
-        const url = `/channels/${channelId}/`;
-        const res = await handleCRUDReq("delete", url);
+        const data = {
+            channelId,
+        }
+        const res = await deleteChannel(data).then((res) => res).catch((err) => err);
+
+        navigate(`/channel/public`);
+
         if (res) {
             setIsOpen(false);
+            setIsLoading(false);
         } else {
             pushErrorMsg("刪除失敗");
         }
