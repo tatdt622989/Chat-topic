@@ -34,12 +34,12 @@ function Home() {
     }
   }, [isMenuOpen]);
 
-  async function getPersonalChannel() {
+  const getPersonalChannel = useCallback(async () => {
     const res = await getUserChannels({ text: '' }).then((res) => res).catch((err) => err);
     if (res.data) {
       setPersonalChannel(res.data);
     }
-  }
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -61,6 +61,7 @@ function Home() {
       updates[`/${channelId}`] = { lastAccessTime: Date.now() };
       handleCRUDReq('update', `users/${state.userId}/channels`, updates);
     }
+
     if (chatType === "channel" && state.userId && !isChannelModalOpen) {
       fetchData();
     }

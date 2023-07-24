@@ -63,6 +63,7 @@ const getUserChannels = httpsCallable(functions, 'getUserChannels');
 const createChannel = httpsCallable(functions, 'createChannel');
 const searchPublicChannel = httpsCallable(functions, 'searchPublicChannel');
 const deleteChannel = httpsCallable(functions, 'deleteChannel');
+const joinChannel = httpsCallable(functions, 'joinChannel');
 
 async function fileUploader(path, file) {
   if (!path || !file) {
@@ -410,6 +411,7 @@ export {
   deleteChannel,
   getUserChannels,
   searchPublicChannel,
+  joinChannel,
   auth,
   db,
   ref,

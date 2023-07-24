@@ -75,6 +75,11 @@ function App() {
     }
   }, [state.userEmail]);
 
+  useEffect(() => {
+    const vh = window.innerHeight;
+    document.documentElement.style.setProperty("--vh", `${vh}px`);
+  }, []);
+
   return (
     <div className="App">
       <GlobalContext.Provider value={contextValue}>

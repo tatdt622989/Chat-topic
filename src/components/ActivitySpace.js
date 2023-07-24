@@ -55,11 +55,12 @@ function ActivitySpaceToolbar({
             <span className="material-icons">person_add</span>
           </button>
         </li>
+         */}
         <li className="member">
           <button className="btn">
             <span className="material-icons">people_alt</span>
           </button>
-        </li> */}
+        </li>
         <li className="personal">
           <button className="btn" onClick={(e) => setIsOpen(true)}>
             <span className="material-icons">person</span>
@@ -361,7 +362,7 @@ function ActivitySpace({ channelId, setIsOpen, members, toggleMenu, info, setIsC
         console.log("msgOff", msgOff);
       }
     };
-  }, [channelId]);
+  }, [channelId, getPersonalChannel]);
 
   return (
     <div className="activitySpaceArea">

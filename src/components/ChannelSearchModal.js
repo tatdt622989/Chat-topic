@@ -1,15 +1,17 @@
 import { Link } from "react-router-dom";
 import React, { useState, useEffect, useContext, useCallback } from 'react';
+import { useNavigate } from "react-router-dom";
 import GlobalContext from "../GlobalContext";
 import { CSSTransition } from 'react-transition-group';
-import { searchPublicChannel } from "../Firebase";
+import { searchPublicChannel, joinChannel } from "../Firebase";
 import { ReactComponent as LoadingIcon } from "../images/loading_s.svg";
 import '../scss/ChannelSearchModal.scss';
 
-function SearchResults({ keyword, setKeyword, setIsOpen, getPersonalChannel }) {
+function SearchResults({ keyword, setKeyword, setIsOpen }) {
     const [results, setResults] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const { state, dispatch } = useContext(GlobalContext);
+    let navigate = useNavigate();
 
     const pushErrorMsg = useCallback((msg) => {
         const id = Date.now();
@@ -45,6 +47,13 @@ function SearchResults({ keyword, setKeyword, setIsOpen, getPersonalChannel }) {
         setKeyword('');
     }
 
+    async function handleGoToChannel(channelId) {
+        await joinChannel({ channelId }).then((res) => res).catch((err) => { console.log(err); });
+        setIsOpen(false);
+        setKeyword('');
+        navigate(`/channel/${channelId}`);
+    }
+
     useEffect(() => {
         if (!keyword) return;
         getResults();
@@ -67,10 +76,7 @@ function SearchResults({ keyword, setKeyword, setIsOpen, getPersonalChannel }) {
     const resultList = results.map((result) => {
         return (
             <div className="searchItem" key={result.id}>
-                <Link to={`/channel/${result.id}`} className="link" onClick={() => {
-                    setIsOpen(false);
-                    setKeyword('');
-                }}>
+                <button className="link" onClick={(e) => handleGoToChannel}>
                     {result.info.photoURL && 
                         <div className="imgBox">
                             <img src={result.info.photoURL} alt="channel" />
@@ -80,7 +86,7 @@ function SearchResults({ keyword, setKeyword, setIsOpen, getPersonalChannel }) {
                     <button className="enterBtn">
                         <span className="material-icons">arrow_forward</span>
                     </button>
-                </Link>
+                </button>
             </div>
         );
     });

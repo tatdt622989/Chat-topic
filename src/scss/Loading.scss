@@ -3,7 +3,7 @@
 .loading {
   position: fixed;
   width: 100%;
-  height: 100vh;
+  height: var(--vh);
   top: 0;
   left: 0;
   background-color: $mainColor;

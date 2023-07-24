@@ -40,16 +40,16 @@ ul {
 }
 
 .App {
-    max-height: 100vh;
+    max-height: var(--vh);
     display: block;
 }
 
 .contentArea {
     display: flex;
-    height: calc(100vh - 73px);
+    height: calc(var(--vh) - 73px);
     @include media(1024) {
         flex-direction: column;
-        height: 100vh;
+        height: var(--vh);
     }
 }
 
@@ -59,7 +59,7 @@ ul {
     height: 100%;
     overflow: hidden;
     &.login, &.signup {
-        height: 100vh;
+        height: var(--vh);
     }
 }
 
