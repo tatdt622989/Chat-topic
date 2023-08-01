@@ -14,7 +14,11 @@ function Home() {
   const { state, dispatch } = useContext(GlobalContext);
   const { channelId } = useParams();
   const [chatType, setChatType] = useState("channel");
-  const [channelInfo, setChannelInfo] = useState();
+  const [channelInfo, setChannelInfo] = useState({
+    description: "",
+    privacy: "",
+    title: "",
+  });
   const [channelMembers, setChannelMembers] = useState();
   const [chatId, setChatId] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(0);
@@ -99,7 +103,7 @@ function Home() {
 
   useEffect(() => {
     getPersonalChannel();
-  }, []);
+  }, [getPersonalChannel]);
 
   return (
     <div className="view home">

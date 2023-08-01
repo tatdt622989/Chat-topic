@@ -162,7 +162,7 @@ function Login() {
       }
     }
     fetch();
-  }, [dispatch, navigate]);
+  }, [dispatch, location.state?.from.pathname, navigate]);
 
   useEffect(() => {
     ruleChecker();

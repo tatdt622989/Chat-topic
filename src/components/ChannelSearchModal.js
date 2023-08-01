@@ -36,16 +36,20 @@ function SearchResults({ keyword, setKeyword, setIsOpen }) {
         }, 3000);
     }, [dispatch]);
 
-    async function getResults() {
+    const getResults = useCallback(async () => {
         if (!keyword) return;
         setIsLoading(true);
         const res = await searchPublicChannel({ keyword }).then((res) => res).catch((err) => { console.log(err); });
         setIsLoading(false);
         if (!res) return;
-        if (res.data.length === 0) return pushErrorMsg("查無結果");
-        setResults(res.data);
+        if (res.data.length === 0) {
+            pushErrorMsg("查無結果");
+            setResults([]);
+        } else {
+            setResults(res.data);
+        }
         setKeyword('');
-    }
+    }, [keyword, setKeyword, pushErrorMsg]);
 
     async function handleGoToChannel(channelId) {
         await joinChannel({ channelId }).then((res) => res).catch((err) => { console.log(err); });
@@ -57,7 +61,7 @@ function SearchResults({ keyword, setKeyword, setIsOpen }) {
     useEffect(() => {
         if (!keyword) return;
         getResults();
-    }, [keyword]);
+    }, [keyword, getResults]);
 
     useEffect(() => {
         return () => {
@@ -76,16 +80,16 @@ function SearchResults({ keyword, setKeyword, setIsOpen }) {
     const resultList = results.map((result) => {
         return (
             <div className="searchItem" key={result.id}>
-                <button className="link" onClick={(e) => handleGoToChannel}>
+                <button className="link" onClick={() => handleGoToChannel(result.id)}>
                     {result.info.photoURL && 
                         <div className="imgBox">
                             <img src={result.info.photoURL} alt="channel" />
                         </div>
                     }
                     <div className="info">{result.info.title}</div>
-                    <button className="enterBtn">
+                    <div className="enterBtn">
                         <span className="material-icons">arrow_forward</span>
-                    </button>
+                    </div>
                 </button>
             </div>
         );

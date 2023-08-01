@@ -158,17 +158,14 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
     };
 
     const handleMemberSearch = async () => {
-        console.log("handleMemberSearch");
         if (isLoading) return;
         if (!memberEmail.trim()) return;
         setIsLoading(true);
         try {
             const res = await handleCRUDReq("get", `/users/`);
             if (res) {
-                console.log(res);
                 let user = null;
                 Object.entries(res).find((item) => {
-                    console.log(item[1].publicInfo.email, memberEmail);
                     if (item[1].publicInfo.email === memberEmail) {
                         user = {};
                         user.description = item[1].publicInfo.description;
@@ -178,8 +175,8 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
                         user.id = item[0];
                         return true;
                     }
+                    return false;
                 });
-                console.log(user);
                 if (user) {
                     // 已經是頻道成員，不可重複新增
                     if (tempMembers.find((item) => item.uid === user.id)) {
@@ -238,7 +235,7 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
             setChannelDescription(channelInfo.description);
             setChannelPrivacy(channelInfo.privacy);
         }
-    }, [isOpen]);
+    }, [channelInfo.description, channelInfo.privacy, channelInfo.title, isOpen, modalType]);
 
     useEffect(() => {
         if (members) {

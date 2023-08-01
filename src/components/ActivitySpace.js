@@ -311,7 +311,7 @@ function ActivitySpace({ channelId, setIsOpen, members, toggleMenu, info, setIsC
       return obj.content.includes(chatSearchKeyword);
     });
     setSearchResult(data);
-  }, [chatSearchKeyword]);
+  }, [chatSearchKeyword, msgData]);
 
   useEffect(() => {
     if (searchResult.length === 0) {
