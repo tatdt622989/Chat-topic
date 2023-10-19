@@ -101,8 +101,8 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
             const tempMembersObj = {};
             tempMembers.forEach((item) => {
                 tempMembersObj[item.uid] = {
-                    joinTimestamp: item.joinTimestamp,
-                    lastActivity: item.lastActivity,
+                    joinTimestamp: item.joinTimestamp ?? Date.now(),
+                    lastActivity: item.lastActivity ?? Date.now(),
                 };
             });
 
@@ -172,14 +172,14 @@ function ChannelModal({ isOpen, setIsOpen, channelInfo, modalType, channelId, me
                         user.email = item[1].publicInfo.email;
                         user.name = item[1].publicInfo.name;
                         user.photoURL = item[1].publicInfo.photoURL;
-                        user.id = item[0];
+                        user.uid = item[0];
                         return true;
                     }
                     return false;
                 });
                 if (user) {
                     // 已經是頻道成員，不可重複新增
-                    if (tempMembers.find((item) => item.uid === user.id)) {
+                    if (tempMembers.find((item) => item.uid === user.uid)) {
                         pushErrorMsg("此帳號已經是頻道成員");
                         setIsLoading(false);
                         return;
